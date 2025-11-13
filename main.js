@@ -130,7 +130,7 @@ function initRitualScene() {
         0.1,
         1000
     );
-    camera.position.set(0, 1.6, 5);
+    camera.position.set(0, 5, 15); // Start further back and higher for better view
 
     // Renderer
     const canvas = document.getElementById('ritual-canvas');
@@ -145,6 +145,9 @@ function initRitualScene() {
 
     // Lights - MUCH MORE LIGHTING!
     setupLights();
+
+    // Add ground plane for reference
+    addGroundPlane();
 
     // Load models
     loadModels();
@@ -239,6 +242,31 @@ function setupLights() {
 }
 
 // ======================
+// GROUND PLANE
+// ======================
+
+function addGroundPlane() {
+    // Create a large ground plane
+    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+        color: 0x0a0a0a,
+        roughness: 0.8,
+        metalness: 0.2
+    });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+    ground.position.y = 0;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Add subtle grid for depth perception
+    const gridHelper = new THREE.GridHelper(100, 50, 0xff6b6b, 0x333333);
+    gridHelper.material.opacity = 0.2;
+    gridHelper.material.transparent = true;
+    scene.add(gridHelper);
+}
+
+// ======================
 // MODEL LOADING
 // ======================
 
@@ -264,19 +292,41 @@ function loadModels() {
             mainModel = gltf.scene;
             mainModel.position.set(0, 0, 0);
             mainModel.scale.set(1, 1, 1);
+
+            // Calculate bounding box for debugging
+            const box = new THREE.Box3().setFromObject(mainModel);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            console.log('Main model loaded:');
+            console.log('  Size:', size);
+            console.log('  Center:', center);
+            console.log('  Position:', mainModel.position);
+
             mainModel.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
 
-                    // Enhance material brightness
+                    // Enhance material brightness and visibility
                     if (child.material) {
-                        child.material.emissive = new THREE.Color(0x111111);
-                        child.material.emissiveIntensity = 0.2;
+                        child.material.emissive = new THREE.Color(0x222222);
+                        child.material.emissiveIntensity = 0.3;
+                        // Ensure materials are visible
+                        if (child.material.transparent) {
+                            child.material.opacity = Math.max(child.material.opacity, 0.9);
+                        }
                     }
                 }
             });
+
             scene.add(mainModel);
+
+            // Add a bright light directly on the model
+            const modelLight = new THREE.PointLight(0xffffff, 2, 50);
+            modelLight.position.copy(center);
+            modelLight.position.y += 5;
+            scene.add(modelLight);
+
             checkAllModelsLoaded();
         },
         (xhr) => {
@@ -747,7 +797,9 @@ function animate() {
             camera.position.y = Math.max(camera.position.y, 0.5); // Minimum height
         } else {
             // Keep camera at walking height in walking mode
-            camera.position.y = 1.6;
+            // Gradually move to walking height
+            const targetHeight = 1.6;
+            camera.position.y += (targetHeight - camera.position.y) * 0.1;
         }
     }
 

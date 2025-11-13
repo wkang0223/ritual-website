@@ -1,3 +1,14 @@
+/* Custom Font */
+@font-face {
+    font-family: 'RX100';
+    src: url('font/RX100_Complete/Fonts/WEB/fonts/RX100-Regular.woff2') format('woff2'),
+         url('font/RX100_Complete/Fonts/WEB/fonts/RX100-Regular.woff') format('woff'),
+         url('font/RX100_Complete/Fonts/WEB/fonts/RX100-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,7 +16,7 @@
 }
 
 body {
-    font-family: 'Courier New', monospace;
+    font-family: 'RX100', 'Courier New', monospace;
     background: #000;
     color: #fff;
     overflow: hidden;
@@ -336,6 +347,55 @@ body {
     border: 2px dashed #333;
 }
 
+/* Footer */
+#ritual-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    z-index: 90;
+    border-top: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    padding: 0 20px;
+}
+
+.footer-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffd93d;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    padding: 8px 15px;
+    border-radius: 5px;
+    background: rgba(255, 107, 107, 0.1);
+}
+
+.footer-link:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.footer-icon {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .info-panel {
@@ -355,5 +415,19 @@ body {
     #instructions {
         font-size: 12px;
         padding: 10px 20px;
+        bottom: 70px;
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .footer-link {
+        font-size: 12px;
+    }
+
+    #ritual-footer {
+        padding: 10px 0;
     }
 }
