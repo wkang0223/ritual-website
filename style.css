@@ -50,6 +50,17 @@ body {
     background: var(--bg-dark);
     color: var(--text-light);
     overflow: hidden;
+    cursor: url('cursor/cursonicon.PNG'), auto;
+}
+
+/* Custom cursor for all elements */
+* {
+    cursor: url('cursor/cursonicon.PNG'), auto;
+}
+
+/* Custom cursor for clickable elements */
+a, button, .close-btn, .info-panel, #entry-screen {
+    cursor: url('cursor/cursonicon.PNG'), pointer;
 }
 
 /* Typography Hierarchy */
