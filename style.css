@@ -309,7 +309,11 @@ li {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(236, 72, 153, 0.15));
+    background-image: url('textbackground.PNG');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: rgba(10, 10, 10, 0.85);
     border: 2px solid rgba(192, 132, 252, 0.5);
     border-radius: 20px;
     padding: 40px 50px;
@@ -323,7 +327,6 @@ li {
     z-index: 100;
     animation: panelAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     backdrop-filter: blur(20px);
-    background-color: rgba(10, 10, 10, 0.92);
 }
 
 @keyframes panelAppear {
