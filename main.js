@@ -470,6 +470,11 @@ function createMarker(name, panelId, color, position) {
     pointLight.position.set(0, 0, 0);
     markerGroup.add(pointLight);
 
+    // Create rotating crystal above marker - unique shape for each
+    const crystal = createCrystalForMarker(name, color);
+    crystal.position.set(0, 3.5, 0); // Above the marker
+    markerGroup.add(crystal);
+
     // Create text sprite
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -495,11 +500,71 @@ function createMarker(name, panelId, color, position) {
     // Store references
     markerGroup.userData.sphere = sphere;
     markerGroup.userData.ring = ring;
+    markerGroup.userData.crystal = crystal;
     markerGroup.userData.originalColor = color;
     markerGroup.userData.originalEmissiveIntensity = 0.8;
 
     scene.add(markerGroup);
     interactiveMarkers.push(markerGroup);
+}
+
+// Create unique crystal shape for each marker
+function createCrystalForMarker(markerName, color) {
+    let geometry;
+
+    // Different crystal shape for each marker
+    switch(markerName) {
+        case 'Home':
+            // Octahedron (8-sided diamond)
+            geometry = new THREE.OctahedronGeometry(0.6, 0);
+            break;
+        case 'About':
+            // Icosahedron (20-sided)
+            geometry = new THREE.IcosahedronGeometry(0.6, 0);
+            break;
+        case 'Event Calendar':
+            // Tetrahedron (4-sided pyramid)
+            geometry = new THREE.TetrahedronGeometry(0.6, 0);
+            break;
+        case 'Workshop':
+            // Dodecahedron (12-sided)
+            geometry = new THREE.DodecahedronGeometry(0.6, 0);
+            break;
+        case 'Address':
+            // Cone (pointed crystal)
+            geometry = new THREE.ConeGeometry(0.5, 1.2, 6);
+            break;
+        case 'Archives':
+            // Box (cubic crystal)
+            geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            break;
+        case 'Ritual Merch':
+            // Torus (ring crystal)
+            geometry = new THREE.TorusGeometry(0.5, 0.2, 8, 16);
+            break;
+        case '3D Design':
+            // Cylinder (pillar crystal)
+            geometry = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 6);
+            break;
+        default:
+            geometry = new THREE.OctahedronGeometry(0.6, 0);
+    }
+
+    // Crystal material with emissive glow matching marker color
+    const material = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: 0.6,
+        roughness: 0.1,
+        metalness: 0.9,
+        transparent: true,
+        opacity: 0.9
+    });
+
+    const crystal = new THREE.Mesh(geometry, material);
+    crystal.castShadow = true;
+
+    return crystal;
 }
 
 function animateMarkers() {
@@ -514,6 +579,27 @@ function animateMarkers() {
         // Rotate ring
         if (marker.userData.ring) {
             marker.userData.ring.rotation.z += 0.02;
+        }
+
+        // Animate crystal - rotation and bounce
+        if (marker.userData.crystal) {
+            // Smooth Y-axis rotation
+            marker.userData.crystal.rotation.y += 0.01;
+
+            // Slight X and Z rotation for dynamic effect
+            marker.userData.crystal.rotation.x = Math.sin(time + index) * 0.1;
+            marker.userData.crystal.rotation.z = Math.cos(time + index) * 0.1;
+
+            // Gentle bounce animation
+            const bounceOffset = Math.sin(time * 3 + index * 0.5) * 0.15;
+            marker.userData.crystal.position.y = 3.5 + bounceOffset;
+
+            // Pulse glow on hover
+            if (marker === hoveredMarker) {
+                marker.userData.crystal.material.emissiveIntensity = 0.8 + Math.sin(time * 5) * 0.2;
+            } else {
+                marker.userData.crystal.material.emissiveIntensity = 0.6;
+            }
         }
 
         // Pulse sphere on hover
