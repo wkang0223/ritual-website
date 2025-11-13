@@ -106,7 +106,7 @@ function initEntryScreen() {
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         // Play ritual music on user interaction (fixes autoplay policy)
-        playSound('ritual-sound', true, 0.6);
+        playSound('ritual-sound', true, 0.4);
 
         // Stop it shortly after as we transition to loading
         setTimeout(() => {
@@ -440,7 +440,7 @@ function loadModels() {
             document.getElementById('scene-container').style.display = 'block';
             controls.lock();
             // Restart ambient sound for main scene at 35% volume for audible background
-            playSound('ambient-sound', true, 0.35);
+            playSound('ambient-sound', true, 0.5);
         }
     }
 
@@ -697,7 +697,7 @@ function onClick(event) {
 
         if (clickedObject.userData.panelId) {
             showPanel(clickedObject.userData.panelId);
-            playSound('ritual-sound', false, 0.6);
+            playSound('ritual-sound', false, 0.4);
             return;
         }
     }
@@ -783,7 +783,7 @@ function onWindowResize() {
 function onMainModelClick() {
     // Trigger teleportation effect
     teleportEffect();
-    playSound('portal-sound', false, 0.6);
+    playSound('portal-sound', false, 0.5);
 
     // Show random sigil quote
     setTimeout(() => {
@@ -794,7 +794,7 @@ function onMainModelClick() {
 function onLogoClick() {
     // Show Patreon panel
     showPanel('patreon-panel');
-    playSound('ritual-sound', false, 0.6);
+    playSound('ritual-sound', false, 0.4);
 }
 
 function teleportEffect() {
@@ -964,7 +964,7 @@ function triggerEasterEgg() {
     scene.add(redLight2);
 
     // Play sound
-    playSound('easteregg-sound', false, 0.6);
+    playSound('easteregg-sound', false, 0.5);
 
     // Remove effect after 1 second
     setTimeout(() => {
