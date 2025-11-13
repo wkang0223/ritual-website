@@ -15,6 +15,10 @@ let fullMoonMode = false;
 let easterEggInput = '';
 let secretRoomUnlocked = false;
 
+// Interactive markers
+let interactiveMarkers = [];
+let hoveredMarker = null;
+
 // Movement modes
 let isFlying = false;
 let movementSpeed = 80; // Reduced from 400 for smoother navigation
@@ -152,6 +156,9 @@ function initRitualScene() {
     // Load models
     loadModels();
 
+    // Create interactive markers
+    createInteractiveMarkers();
+
     // Controls (will be enabled after models load)
     setupControls();
 
@@ -281,6 +288,120 @@ function addGroundPlane() {
     scene.add(referenceSphere);
 
     console.log('Reference sphere added at (0, 2, 0) - if you see this glowing cyan sphere, the scene is working!');
+}
+
+// ======================
+// INTERACTIVE MARKERS
+// ======================
+
+function createInteractiveMarkers() {
+    const markerData = [
+        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 2, z: 8 } },
+        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 2, z: 8 } },
+        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 2, z: 0 } },
+        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 2, z: -8 } },
+        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 2, z: -8 } },
+        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 2, z: 0 } },
+        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 2, z: 12 } },
+        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 2, z: -12 } }
+    ];
+
+    markerData.forEach(data => {
+        createMarker(data.name, data.panel, data.color, data.position);
+    });
+}
+
+function createMarker(name, panelId, color, position) {
+    // Create marker group
+    const markerGroup = new THREE.Group();
+    markerGroup.position.set(position.x, position.y, position.z);
+    markerGroup.userData = { panelId: panelId, name: name };
+
+    // Create glowing sphere
+    const sphereGeometry = new THREE.SphereGeometry(0.8, 32, 32);
+    const sphereMaterial = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: 0.8,
+        roughness: 0.2,
+        metalness: 0.8
+    });
+    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphere.castShadow = true;
+    markerGroup.add(sphere);
+
+    // Create outer glow ring
+    const ringGeometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
+    const ringMaterial = new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.6
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.PI / 2;
+    markerGroup.add(ring);
+
+    // Add point light for glow effect
+    const pointLight = new THREE.PointLight(color, 2, 10);
+    pointLight.position.set(0, 0, 0);
+    markerGroup.add(pointLight);
+
+    // Create text sprite
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 512;
+    canvas.height = 128;
+
+    context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    context.font = 'Bold 48px Arial';
+    context.fillStyle = '#ffffff';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(name, canvas.width / 2, canvas.height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(4, 1, 1);
+    sprite.position.set(0, 2, 0);
+    markerGroup.add(sprite);
+
+    // Store references
+    markerGroup.userData.sphere = sphere;
+    markerGroup.userData.ring = ring;
+    markerGroup.userData.originalColor = color;
+    markerGroup.userData.originalEmissiveIntensity = 0.8;
+
+    scene.add(markerGroup);
+    interactiveMarkers.push(markerGroup);
+}
+
+function animateMarkers() {
+    const time = Date.now() * 0.001;
+
+    interactiveMarkers.forEach((marker, index) => {
+        // Floating animation
+        marker.position.y = marker.userData.originalY || marker.position.y;
+        marker.userData.originalY = marker.userData.originalY || marker.position.y;
+        marker.position.y = marker.userData.originalY + Math.sin(time * 2 + index) * 0.3;
+
+        // Rotate ring
+        if (marker.userData.ring) {
+            marker.userData.ring.rotation.z += 0.02;
+        }
+
+        // Pulse sphere on hover
+        if (marker === hoveredMarker && marker.userData.sphere) {
+            const scale = 1 + Math.sin(time * 5) * 0.1;
+            marker.userData.sphere.scale.set(scale, scale, scale);
+            marker.userData.sphere.material.emissiveIntensity = 1.2;
+        } else if (marker.userData.sphere) {
+            marker.userData.sphere.scale.set(1, 1, 1);
+            marker.userData.sphere.material.emissiveIntensity = marker.userData.originalEmissiveIntensity;
+        }
+    });
 }
 
 // ======================
@@ -428,8 +549,9 @@ function setupEventListeners() {
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
 
-    // Mouse click
+    // Mouse
     window.addEventListener('click', onClick);
+    window.addEventListener('mousemove', onMouseMove);
 
     // Window resize
     window.addEventListener('resize', onWindowResize);
@@ -538,6 +660,33 @@ function onClick(event) {
     // Raycast
     raycaster.setFromCamera(mouse, camera);
 
+    // Check interactive markers first
+    const markerObjects = [];
+    interactiveMarkers.forEach(marker => {
+        marker.traverse(child => {
+            if (child.isMesh || child.isSprite) {
+                markerObjects.push(child);
+            }
+        });
+    });
+
+    const markerIntersects = raycaster.intersectObjects(markerObjects, false);
+
+    if (markerIntersects.length > 0) {
+        // Find the marker group
+        let clickedObject = markerIntersects[0].object;
+        while (clickedObject.parent && !clickedObject.userData.panelId) {
+            clickedObject = clickedObject.parent;
+        }
+
+        if (clickedObject.userData.panelId) {
+            showPanel(clickedObject.userData.panelId);
+            playSound('ritual-sound');
+            return;
+        }
+    }
+
+    // Check other objects
     const intersects = raycaster.intersectObjects(scene.children, true);
 
     if (intersects.length > 0) {
@@ -550,6 +699,44 @@ function onClick(event) {
             onLogoClick();
         }
     }
+}
+
+// Mouse move for hover effects
+function onMouseMove(event) {
+    if (!controls || !controls.isLocked) return;
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const markerObjects = [];
+    interactiveMarkers.forEach(marker => {
+        marker.traverse(child => {
+            if (child.isMesh || child.isSprite) {
+                markerObjects.push(child);
+            }
+        });
+    });
+
+    const intersects = raycaster.intersectObjects(markerObjects, false);
+
+    if (intersects.length > 0) {
+        let hoveredObject = intersects[0].object;
+        while (hoveredObject.parent && !hoveredObject.userData.panelId) {
+            hoveredObject = hoveredObject.parent;
+        }
+
+        if (hoveredObject.userData.panelId) {
+            hoveredMarker = hoveredObject;
+            document.getElementById('interaction-hint').style.display = 'block';
+            document.getElementById('hint-text').textContent = 'Click to view ' + hoveredObject.userData.name;
+            return;
+        }
+    }
+
+    hoveredMarker = null;
+    document.getElementById('interaction-hint').style.display = 'none';
 }
 
 function isDescendant(child, parent) {
@@ -830,6 +1017,9 @@ function animate() {
             camera.position.y += (targetHeight - camera.position.y) * 0.1;
         }
     }
+
+    // Animate interactive markers
+    animateMarkers();
 
     // Render
     if (renderer && scene && camera) {

@@ -23,23 +23,14 @@
     <div id="scene-container" style="display: none;">
         <canvas id="ritual-canvas"></canvas>
 
-        <!-- Navigation Menu -->
-        <nav id="main-nav">
-            <div class="nav-content">
-                <button class="nav-item" onclick="showPanel('home-panel')">Home</button>
-                <button class="nav-item" onclick="showPanel('about-panel')">About</button>
-                <button class="nav-item" onclick="showPanel('event-panel')">Event Calendar</button>
-                <button class="nav-item" onclick="showPanel('workshop-panel')">Workshop</button>
-                <button class="nav-item" onclick="showPanel('address-panel')">Address</button>
-                <button class="nav-item" onclick="showPanel('archives-panel')">Archives</button>
-                <button class="nav-item" onclick="showPanel('merch-panel')">Ritual Merch</button>
-                <button class="nav-item" onclick="showPanel('design-panel')">Custom 3D Design & Printing</button>
-            </div>
-        </nav>
-
         <!-- UI Overlays -->
         <div id="instructions">
-            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | ESC - Menu</p>
+            <p>WASD - Move | Mouse - Look Around | Click Markers - Interact | M - Full Moon | Ctrl+F - Fly Mode</p>
+        </div>
+
+        <!-- Interaction Hint -->
+        <div id="interaction-hint" style="display: none;">
+            <p id="hint-text">Click to interact</p>
         </div>
 
         <!-- Home Panel -->
