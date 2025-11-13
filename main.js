@@ -92,9 +92,6 @@ function initEntryScreen() {
             entryLogoModel.scale.set(1.5, 1.5, 1.5);
             entryScene.add(entryLogoModel);
 
-            // Play ritual music on entry screen
-            playSound('ritual-sound', true, 0.7);
-
             // Animate entry screen
             animateEntryScreen();
         },
@@ -108,8 +105,13 @@ function initEntryScreen() {
 
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
-        // Stop entry screen music
-        stopSound('ritual-sound');
+        // Play ritual music on user interaction (fixes autoplay policy)
+        playSound('ritual-sound', true, 0.7);
+
+        // Stop it shortly after as we transition to loading
+        setTimeout(() => {
+            stopSound('ritual-sound');
+        }, 500);
 
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
@@ -437,8 +439,8 @@ function loadModels() {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('scene-container').style.display = 'block';
             controls.lock();
-            // Restart ambient sound for main scene (it was stopped when entry screen closed)
-            playSound('ambient-sound', true);
+            // Restart ambient sound for main scene at 15% volume to avoid audio chaos
+            playSound('ambient-sound', true, 0.15);
         }
     }
 
