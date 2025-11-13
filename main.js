@@ -297,35 +297,73 @@ function loadModels() {
             const box = new THREE.Box3().setFromObject(mainModel);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
-            console.log('Main model loaded:');
-            console.log('  Size:', size);
-            console.log('  Center:', center);
-            console.log('  Position:', mainModel.position);
 
+            console.log('=== MAIN MODEL DEBUG ===');
+            console.log('Size:', size.x.toFixed(2), 'x', size.y.toFixed(2), 'x', size.z.toFixed(2));
+            console.log('Center:', center.x.toFixed(2), center.y.toFixed(2), center.z.toFixed(2));
+            console.log('Bounding Box Min:', box.min);
+            console.log('Bounding Box Max:', box.max);
+            console.log('Children:', mainModel.children.length);
+
+            // Add visible bounding box helper (green wireframe box)
+            const boxHelper = new THREE.Box3Helper(box, 0x00ff00);
+            scene.add(boxHelper);
+
+            // Add axis helper at model center (RGB = XYZ)
+            const axisHelper = new THREE.AxesHelper(10);
+            axisHelper.position.copy(center);
+            scene.add(axisHelper);
+
+            let meshCount = 0;
             mainModel.traverse((child) => {
                 if (child.isMesh) {
+                    meshCount++;
                     child.castShadow = true;
                     child.receiveShadow = true;
 
+                    console.log('Mesh #' + meshCount + ':', child.name || 'unnamed');
+                    console.log('  Material:', child.material ? child.material.type : 'none');
+
                     // Enhance material brightness and visibility
                     if (child.material) {
-                        child.material.emissive = new THREE.Color(0x222222);
-                        child.material.emissiveIntensity = 0.3;
-                        // Ensure materials are visible
-                        if (child.material.transparent) {
-                            child.material.opacity = Math.max(child.material.opacity, 0.9);
-                        }
+                        // Force materials to be visible
+                        child.material.transparent = false;
+                        child.material.opacity = 1.0;
+                        child.material.side = THREE.DoubleSide;
+
+                        // Add emissive glow
+                        child.material.emissive = new THREE.Color(0x444444);
+                        child.material.emissiveIntensity = 0.5;
+
+                        // Update material
+                        child.material.needsUpdate = true;
+
+                        console.log('  Updated material - Emissive: 0x444444, Intensity: 0.5');
                     }
                 }
             });
 
+            console.log('Total meshes found:', meshCount);
+
             scene.add(mainModel);
 
-            // Add a bright light directly on the model
-            const modelLight = new THREE.PointLight(0xffffff, 2, 50);
-            modelLight.position.copy(center);
-            modelLight.position.y += 5;
-            scene.add(modelLight);
+            // Add multiple bright lights around the model
+            const modelLight1 = new THREE.PointLight(0xffffff, 4, 60);
+            modelLight1.position.set(center.x, center.y + 10, center.z);
+            scene.add(modelLight1);
+
+            const modelLight2 = new THREE.PointLight(0xffffff, 3, 50);
+            modelLight2.position.set(center.x + 10, center.y + 5, center.z + 10);
+            scene.add(modelLight2);
+
+            const modelLight3 = new THREE.PointLight(0xffffff, 3, 50);
+            modelLight3.position.set(center.x - 10, center.y + 5, center.z - 10);
+            scene.add(modelLight3);
+
+            console.log('Camera position:', camera.position);
+            console.log('Camera is looking at center:', center);
+            console.log('Distance from camera to model:', camera.position.distanceTo(center).toFixed(2));
+            console.log('===================');
 
             checkAllModelsLoaded();
         },
