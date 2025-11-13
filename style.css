@@ -50,17 +50,17 @@ body {
     background: var(--bg-dark);
     color: var(--text-light);
     overflow: hidden;
-    cursor: url('cursor/cursonicon.PNG'), auto;
+    cursor: url('cursor/cursonicon.PNG') 32 32, auto;
 }
 
 /* Custom cursor for all elements */
 * {
-    cursor: url('cursor/cursonicon.PNG'), auto;
+    cursor: url('cursor/cursonicon.PNG') 32 32, auto;
 }
 
 /* Custom cursor for clickable elements */
 a, button, .close-btn, .info-panel, #entry-screen {
-    cursor: url('cursor/cursonicon.PNG'), pointer;
+    cursor: url('cursor/cursonicon.PNG') 32 32, pointer;
 }
 
 /* Typography Hierarchy */

@@ -179,6 +179,9 @@ function cleanupEntryScene() {
 }
 
 function animateEntryScreen() {
+    // Exit if renderer was cleaned up (prevents null reference error)
+    if (!entryRenderer) return;
+
     requestAnimationFrame(animateEntryScreen);
 
     if (entryLogoModel) {
