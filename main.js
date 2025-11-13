@@ -2,6 +2,10 @@
 // RITUAL PENANG - WebGL Interactive Space
 // ======================
 
+// Mobile detection
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 // Global variables
 let scene, camera, renderer, controls;
 let entryScene, entryCamera, entryRenderer;
@@ -62,9 +66,15 @@ function initEntryScreen() {
     );
     entryCamera.position.set(0, 0, 3);
 
-    // Entry Renderer
-    entryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    // Entry Renderer - optimized for mobile
+    entryRenderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !isMobile, // Disable antialiasing on mobile for better performance
+        alpha: true,
+        powerPreference: "high-performance"
+    });
     entryRenderer.setSize(window.innerWidth, window.innerHeight);
+    entryRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2)); // Cap pixel ratio on mobile
 
     // Chrome/Silver lights for entry scene
     const ambientLight = new THREE.AmbientLight(0xc0c0c0, 0.7);
@@ -151,12 +161,19 @@ function initRitualScene() {
     // Model center is at approximately (-5.66, 5.57, -0.35)
     camera.position.set(-5.66, 5.57, 10); // Positioned to look into the environment
 
-    // Renderer
+    // Renderer - optimized for mobile
     const canvas = document.getElementById('ritual-canvas');
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !isMobile, // Disable antialiasing on mobile
+        powerPreference: "high-performance"
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2)); // Cap pixel ratio on mobile
+    renderer.shadowMap.enabled = !isMobile; // Disable shadows on mobile for performance
+    if (!isMobile) {
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
 
     // Raycaster for clicking
     raycaster = new THREE.Raycaster();
@@ -565,9 +582,22 @@ function setupEventListeners() {
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
 
-    // Mouse
+    // Mouse and Touch
     window.addEventListener('click', onClick);
     window.addEventListener('mousemove', onMouseMove);
+
+    // Mobile touch events
+    if (isMobile) {
+        window.addEventListener('touchstart', onTouchStart, { passive: false });
+        window.addEventListener('touchend', onTouchEnd, { passive: false });
+        window.addEventListener('touchmove', onTouchMove, { passive: false });
+
+        // Update instructions for mobile
+        const instructions = document.getElementById('instructions');
+        if (instructions) {
+            instructions.querySelector('p').textContent = 'Tap to Look Around | Tap Markers to Interact | Swipe to Move';
+        }
+    }
 
     // Window resize
     window.addEventListener('resize', onWindowResize);
@@ -753,6 +783,57 @@ function onMouseMove(event) {
 
     hoveredMarker = null;
     document.getElementById('interaction-hint').style.display = 'none';
+}
+
+// Touch event handlers for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoveX = 0;
+let touchMoveY = 0;
+
+function onTouchStart(event) {
+    if (!controls || !controls.isLocked) {
+        // If not locked, tap to lock
+        if (event.target.closest('.info-panel') || event.target.closest('button')) {
+            return; // Don't interfere with UI interactions
+        }
+        return;
+    }
+
+    event.preventDefault();
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+}
+
+function onTouchMove(event) {
+    if (!controls || !controls.isLocked) return;
+
+    event.preventDefault();
+    touchMoveX = event.touches[0].clientX;
+    touchMoveY = event.touches[0].clientY;
+
+    const deltaX = touchMoveX - touchStartX;
+    const deltaY = touchMoveY - touchStartY;
+
+    // Update camera rotation based on touch movement
+    camera.rotation.y -= deltaX * 0.002;
+    camera.rotation.x -= deltaY * 0.002;
+    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+
+    touchStartX = touchMoveX;
+    touchStartY = touchMoveY;
+}
+
+function onTouchEnd(event) {
+    // Simulate click for tap events on markers
+    if (!controls || !controls.isLocked) return;
+
+    const touch = event.changedTouches[0];
+    const clickEvent = new MouseEvent('click', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    onClick(clickEvent);
 }
 
 function isDescendant(child, parent) {

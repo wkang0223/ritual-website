@@ -265,12 +265,12 @@
         </footer>
     </div>
 
-    <!-- Audio Elements -->
-    <audio id="ritual-sound" src="sounds/ritual-sound.mp3" preload="auto"></audio>
-    <audio id="fullmoon-sound" src="sounds/fullmoon-sound.mp3" preload="auto" loop></audio>
-    <audio id="portal-sound" src="sounds/portal-sound.mp3" preload="auto"></audio>
-    <audio id="easteregg-sound" src="sounds/easteregg-sound.mp3" preload="auto"></audio>
-    <audio id="ambient-sound" src="sounds/ambient.mp3" preload="auto" loop></audio>
+    <!-- Audio Elements - preload="metadata" for large files on mobile to save bandwidth -->
+    <audio id="ritual-sound" src="sounds/ritual-sound.mp3" preload="metadata"></audio>
+    <audio id="fullmoon-sound" src="sounds/fullmoon-sound.mp3" preload="metadata" loop></audio>
+    <audio id="portal-sound" src="sounds/portal-sound.mp3" preload="metadata"></audio>
+    <audio id="easteregg-sound" src="sounds/easteregg-sound.mp3" preload="metadata"></audio>
+    <audio id="ambient-sound" src="sounds/ambient.mp3" preload="metadata" loop></audio>
 
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
