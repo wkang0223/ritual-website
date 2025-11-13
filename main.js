@@ -870,7 +870,7 @@ function toggleLights() {
 
         // Play fullmoon sound in dark mode (only if not already playing)
         if (!fullmoonSoundPlaying) {
-            playSound('fullmoon-sound', true, 0.4);
+            playSound('fullmoon-sound', true, 0.25);
             fullmoonSoundPlaying = true;
         }
 
