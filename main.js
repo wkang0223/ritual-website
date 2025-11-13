@@ -423,14 +423,14 @@ function addGroundPlane() {
 
 function createInteractiveMarkers() {
     const markerData = [
-        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 5, z: 8 } },
-        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 5, z: 8 } },
-        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 5, z: 0 } },
-        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 5, z: -8 } },
-        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 5, z: -8 } },
-        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 5, z: 0 } },
-        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 5, z: 12 } },
-        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 5, z: -12 } }
+        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 3, z: 8 } },
+        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 3, z: 8 } },
+        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 3, z: 0 } },
+        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 3, z: -8 } },
+        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 3, z: -8 } },
+        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 3, z: 0 } },
+        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 3, z: 12 } },
+        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 3, z: -12 } }
     ];
 
     markerData.forEach(data => {

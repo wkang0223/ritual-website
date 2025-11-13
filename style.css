@@ -310,7 +310,7 @@ li {
     left: 50%;
     transform: translate(-50%, -50%);
     background-image: url('textbackground.png');
-    background-size: 220% 220%;
+    background-size: 300% 300%;
     background-position: center;
     background-repeat: no-repeat;
     background-color: rgba(10, 10, 10, 0.85);
