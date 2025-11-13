@@ -119,6 +119,39 @@ li {
     height: 100%;
 }
 
+#entry-logo-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 400px;
+    max-height: 400px;
+    width: 80%;
+    height: auto;
+    z-index: 5;
+    object-fit: contain;
+    animation: logoFloat 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translate(-50%, -50%) translateY(0px);
+    }
+    50% {
+        transform: translate(-50%, -50%) translateY(-20px);
+    }
+}
+
+/* Mobile adjustments for logo */
+@media (max-width: 768px) {
+    #entry-logo-image {
+        max-width: 280px;
+        max-height: 280px;
+        width: 70%;
+    }
+}
+
 #entry-text {
     position: relative;
     z-index: 10;
