@@ -121,12 +121,12 @@ li {
 
 #entry-logo-image {
     position: absolute;
-    top: 50%;
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-width: 400px;
-    max-height: 400px;
-    width: 80%;
+    max-width: 300px;
+    max-height: 150px;
+    width: 60%;
     height: auto;
     z-index: 5;
     object-fit: contain;
@@ -139,16 +139,17 @@ li {
         transform: translate(-50%, -50%) translateY(0px);
     }
     50% {
-        transform: translate(-50%, -50%) translateY(-20px);
+        transform: translate(-50%, -50%) translateY(-10px);
     }
 }
 
 /* Mobile adjustments for logo */
 @media (max-width: 768px) {
     #entry-logo-image {
-        max-width: 280px;
-        max-height: 280px;
-        width: 70%;
+        max-width: 250px;
+        max-height: 120px;
+        width: 65%;
+        top: 65%;
     }
 }
 
