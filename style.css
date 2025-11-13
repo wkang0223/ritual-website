@@ -20,51 +20,31 @@ body {
     height: 100%;
     background: #000;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    cursor: pointer;
 }
 
-#smoke-canvas {
+#entry-canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.3;
-}
-
-#sigil-container {
-    position: relative;
-    text-align: center;
-    z-index: 10;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-}
-
-#sigil-container:hover {
-    transform: scale(1.1);
-}
-
-#ritual-sigil {
-    width: 300px;
-    height: 300px;
-    filter: drop-shadow(0 0 20px #ff6b6b) drop-shadow(0 0 40px #ffd93d);
-    animation: pulse 2s infinite ease-in-out;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 0.8; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
 }
 
 #entry-text {
-    margin-top: 20px;
+    position: relative;
+    z-index: 10;
+    margin-top: 50vh;
     font-size: 18px;
     color: #ffd93d;
     text-transform: uppercase;
     letter-spacing: 3px;
     animation: glow 1.5s infinite alternate;
+    pointer-events: none;
 }
 
 @keyframes glow {

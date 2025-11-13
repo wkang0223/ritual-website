@@ -9,26 +9,8 @@
 <body>
     <!-- Entry Screen -->
     <div id="entry-screen">
-        <canvas id="smoke-canvas"></canvas>
-        <div id="sigil-container">
-            <svg id="ritual-sigil" viewBox="0 0 200 200">
-                <!-- Ritual Logo Sigil -->
-                <circle cx="100" cy="100" r="80" fill="none" stroke="url(#gradient)" stroke-width="2"/>
-                <circle cx="100" cy="100" r="60" fill="none" stroke="url(#gradient)" stroke-width="1.5"/>
-                <path d="M 100 20 L 100 180 M 20 100 L 180 100" stroke="url(#gradient)" stroke-width="2"/>
-                <circle cx="100" cy="100" r="10" fill="url(#gradient)"/>
-
-                <!-- Gradient Definition -->
-                <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#ffd93d;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-            </svg>
-            <p id="entry-text">Click the Sigil to Enter</p>
-        </div>
+        <canvas id="entry-canvas"></canvas>
+        <p id="entry-text">Click the Logo to Enter</p>
     </div>
 
     <!-- Loading Screen -->
@@ -43,7 +25,7 @@
 
         <!-- UI Overlays -->
         <div id="instructions">
-            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Click - Interact</p>
+            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | Click - Interact</p>
         </div>
 
         <!-- Moon Hall Panel -->

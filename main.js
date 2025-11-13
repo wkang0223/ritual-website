@@ -4,14 +4,20 @@
 
 // Global variables
 let scene, camera, renderer, controls;
-let mainModel, logoModel;
+let entryScene, entryCamera, entryRenderer;
+let mainModel, logoModel, entryLogoModel;
 let raycaster, mouse;
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+let moveUp = false, moveDown = false;
 let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
 let fullMoonMode = false;
 let easterEggInput = '';
 let secretRoomUnlocked = false;
+
+// Movement modes
+let isFlying = false;
+let movementSpeed = 80; // Reduced from 400 for smoother navigation
 
 // Interaction state
 let canClick = true;
@@ -28,69 +34,83 @@ const sigilQuotes = [
 ];
 
 // ======================
-// ENTRY SCREEN
+// ENTRY SCREEN WITH 3D LOGO
 // ======================
 
 function initEntryScreen() {
-    const canvas = document.getElementById('smoke-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const canvas = document.getElementById('entry-canvas');
 
-    // Simple smoke effect with particles
-    const particles = [];
-    const particleCount = 50;
+    // Entry Scene
+    entryScene = new THREE.Scene();
+    entryScene.background = new THREE.Color(0x000000);
 
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = canvas.height + Math.random() * 100;
-            this.size = Math.random() * 30 + 10;
-            this.speedY = Math.random() * 1 + 0.5;
-            this.opacity = Math.random() * 0.5;
+    // Entry Camera
+    entryCamera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    entryCamera.position.set(0, 0, 3);
+
+    // Entry Renderer
+    entryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    entryRenderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Lights for entry scene
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    entryScene.add(ambientLight);
+
+    const light1 = new THREE.PointLight(0xff6b6b, 2, 10);
+    light1.position.set(2, 2, 2);
+    entryScene.add(light1);
+
+    const light2 = new THREE.PointLight(0xffd93d, 2, 10);
+    light2.position.set(-2, -2, 2);
+    entryScene.add(light2);
+
+    const light3 = new THREE.PointLight(0xff6b6b, 1.5, 10);
+    light3.position.set(0, 0, -2);
+    entryScene.add(light3);
+
+    // Load ritual logo for entry
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+        'rituallogo.glb',
+        (gltf) => {
+            entryLogoModel = gltf.scene;
+            entryLogoModel.position.set(0, 0, 0);
+            entryLogoModel.scale.set(1.5, 1.5, 1.5);
+            entryScene.add(entryLogoModel);
+
+            // Animate entry screen
+            animateEntryScreen();
+        },
+        (xhr) => {
+            console.log('Entry logo: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        (error) => {
+            console.error('Error loading entry logo:', error);
         }
+    );
 
-        update() {
-            this.y -= this.speedY;
-            this.opacity -= 0.002;
-
-            if (this.y < -50 || this.opacity <= 0) {
-                this.y = canvas.height + Math.random() * 100;
-                this.opacity = Math.random() * 0.5;
-            }
-        }
-
-        draw() {
-            ctx.fillStyle = `rgba(255, 107, 107, ${this.opacity})`;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    // Create particles
-    for (let i = 0; i < particleCount; i++) {
-        particles.push(new Particle());
-    }
-
-    // Animate smoke
-    function animateSmoke() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(particle => {
-            particle.update();
-            particle.draw();
-        });
-        requestAnimationFrame(animateSmoke);
-    }
-
-    animateSmoke();
-
-    // Handle sigil click
-    document.getElementById('sigil-container').addEventListener('click', () => {
+    // Click to enter
+    document.getElementById('entry-screen').addEventListener('click', () => {
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
         initRitualScene();
     });
+}
+
+function animateEntryScreen() {
+    requestAnimationFrame(animateEntryScreen);
+
+    if (entryLogoModel) {
+        entryLogoModel.rotation.y += 0.01;
+        entryLogoModel.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+    }
+
+    entryRenderer.render(entryScene, entryCamera);
 }
 
 // ======================
@@ -100,8 +120,8 @@ function initEntryScreen() {
 function initRitualScene() {
     // Scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000000);
-    scene.fog = new THREE.Fog(0x000000, 10, 50);
+    scene.background = new THREE.Color(0x0a0a0a);
+    scene.fog = new THREE.Fog(0x0a0a0a, 20, 100);
 
     // Camera
     camera = new THREE.PerspectiveCamera(
@@ -117,12 +137,13 @@ function initRitualScene() {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Raycaster for clicking
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // Lights
+    // Lights - MUCH MORE LIGHTING!
     setupLights();
 
     // Load models
@@ -139,28 +160,82 @@ function initRitualScene() {
 }
 
 // ======================
-// LIGHTING
+// LIGHTING - ENHANCED!
 // ======================
 
 function setupLights() {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // Strong ambient light for overall visibility
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    // Point lights for ritual atmosphere
-    const light1 = new THREE.PointLight(0xff6b6b, 1, 20);
-    light1.position.set(5, 3, 5);
-    scene.add(light1);
+    // Hemisphere light for natural lighting
+    const hemiLight = new THREE.HemisphereLight(0xffd93d, 0xff6b6b, 0.5);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
 
-    const light2 = new THREE.PointLight(0xffd93d, 1, 20);
-    light2.position.set(-5, 3, -5);
-    scene.add(light2);
-
-    // Directional light
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    dirLight.position.set(0, 10, 0);
+    // Main directional light (like sun)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(5, 10, 5);
     dirLight.castShadow = true;
+    dirLight.shadow.camera.top = 20;
+    dirLight.shadow.camera.bottom = -20;
+    dirLight.shadow.camera.left = -20;
+    dirLight.shadow.camera.right = 20;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
     scene.add(dirLight);
+
+    // Secondary directional light from opposite side
+    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    dirLight2.position.set(-5, 10, -5);
+    scene.add(dirLight2);
+
+    // Point lights for ritual atmosphere
+    const pointLight1 = new THREE.PointLight(0xff6b6b, 1.5, 30);
+    pointLight1.position.set(5, 3, 5);
+    pointLight1.castShadow = true;
+    scene.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(0xffd93d, 1.5, 30);
+    pointLight2.position.set(-5, 3, -5);
+    pointLight2.castShadow = true;
+    scene.add(pointLight2);
+
+    const pointLight3 = new THREE.PointLight(0xff8e53, 1.2, 25);
+    pointLight3.position.set(5, 2, -5);
+    scene.add(pointLight3);
+
+    const pointLight4 = new THREE.PointLight(0xffaa00, 1.2, 25);
+    pointLight4.position.set(-5, 2, 5);
+    scene.add(pointLight4);
+
+    // Overhead spotlight
+    const spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(0, 15, 0);
+    spotLight.angle = Math.PI / 4;
+    spotLight.penumbra = 0.3;
+    spotLight.decay = 2;
+    spotLight.distance = 40;
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    // Additional fill lights
+    const fillLight1 = new THREE.PointLight(0xffffff, 0.8, 20);
+    fillLight1.position.set(0, 5, 10);
+    scene.add(fillLight1);
+
+    const fillLight2 = new THREE.PointLight(0xffffff, 0.8, 20);
+    fillLight2.position.set(0, 5, -10);
+    scene.add(fillLight2);
+
+    // Ground-level rim lights
+    const rimLight1 = new THREE.PointLight(0xff6b6b, 0.6, 15);
+    rimLight1.position.set(8, 0.5, 0);
+    scene.add(rimLight1);
+
+    const rimLight2 = new THREE.PointLight(0xffd93d, 0.6, 15);
+    rimLight2.position.set(-8, 0.5, 0);
+    scene.add(rimLight2);
 }
 
 // ======================
@@ -193,13 +268,19 @@ function loadModels() {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
+
+                    // Enhance material brightness
+                    if (child.material) {
+                        child.material.emissive = new THREE.Color(0x111111);
+                        child.material.emissiveIntensity = 0.2;
+                    }
                 }
             });
             scene.add(mainModel);
             checkAllModelsLoaded();
         },
         (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            console.log('Main model: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
         },
         (error) => {
             console.error('Error loading main model:', error);
@@ -207,7 +288,7 @@ function loadModels() {
         }
     );
 
-    // Load logo model
+    // Load logo model for main scene
     loader.load(
         'rituallogo.glb',
         (gltf) => {
@@ -217,19 +298,25 @@ function loadModels() {
             logoModel.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
+
+                    // Make logo more visible
+                    if (child.material) {
+                        child.material.emissive = new THREE.Color(0xffd93d);
+                        child.material.emissiveIntensity = 0.5;
+                    }
                 }
             });
             scene.add(logoModel);
 
-            // Add glow effect to logo
-            const glowLight = new THREE.PointLight(0xffd93d, 2, 5);
+            // Add strong glow effect to logo
+            const glowLight = new THREE.PointLight(0xffd93d, 3, 8);
             glowLight.position.copy(logoModel.position);
             scene.add(glowLight);
 
             checkAllModelsLoaded();
         },
         (xhr) => {
-            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            console.log('Logo model: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
         },
         (error) => {
             console.error('Error loading logo model:', error);
@@ -271,6 +358,20 @@ function setupEventListeners() {
 }
 
 function onKeyDown(event) {
+    // Check for Ctrl key combinations first
+    if (event.ctrlKey) {
+        switch (event.code) {
+            case 'KeyF':
+                event.preventDefault();
+                toggleFlyingMode(true);
+                return;
+            case 'KeyW':
+                event.preventDefault();
+                toggleFlyingMode(false);
+                return;
+        }
+    }
+
     switch (event.code) {
         case 'ArrowUp':
         case 'KeyW':
@@ -288,19 +389,33 @@ function onKeyDown(event) {
         case 'KeyD':
             moveRight = true;
             break;
+        case 'Space':
+            if (isFlying) {
+                event.preventDefault();
+                moveUp = true;
+            }
+            break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+            if (isFlying) {
+                moveDown = true;
+            }
+            break;
         case 'KeyM':
             toggleFullMoonMode();
             break;
     }
 
     // Easter egg: typing "RITUAL"
-    easterEggInput += event.key.toUpperCase();
-    if (easterEggInput.length > 6) {
-        easterEggInput = easterEggInput.slice(-6);
-    }
-    if (easterEggInput === 'RITUAL') {
-        triggerEasterEgg();
-        easterEggInput = '';
+    if (!event.ctrlKey) {
+        easterEggInput += event.key.toUpperCase();
+        if (easterEggInput.length > 6) {
+            easterEggInput = easterEggInput.slice(-6);
+        }
+        if (easterEggInput === 'RITUAL') {
+            triggerEasterEgg();
+            easterEggInput = '';
+        }
     }
 }
 
@@ -321,6 +436,13 @@ function onKeyUp(event) {
         case 'ArrowRight':
         case 'KeyD':
             moveRight = false;
+            break;
+        case 'Space':
+            moveUp = false;
+            break;
+        case 'ShiftLeft':
+        case 'ShiftRight':
+            moveDown = false;
             break;
     }
 }
@@ -344,18 +466,33 @@ function onClick(event) {
         const object = intersects[0].object;
 
         // Check which model was clicked
-        if (mainModel && object.parent === mainModel) {
+        if (mainModel && isDescendant(object, mainModel)) {
             onMainModelClick();
-        } else if (logoModel && object.parent === logoModel) {
+        } else if (logoModel && isDescendant(object, logoModel)) {
             onLogoClick();
         }
     }
+}
+
+function isDescendant(child, parent) {
+    let node = child;
+    while (node) {
+        if (node === parent) return true;
+        node = node.parent;
+    }
+    return false;
 }
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (entryCamera && entryRenderer) {
+        entryCamera.aspect = window.innerWidth / window.innerHeight;
+        entryCamera.updateProjectionMatrix();
+        entryRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
 }
 
 // ======================
@@ -391,7 +528,7 @@ function teleportEffect() {
     const duration = 1000; // ms
     const startTime = Date.now();
 
-    function animate() {
+    function animateTeleport() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
@@ -399,11 +536,11 @@ function teleportEffect() {
         camera.position.z = startPosition.z + (newPosition.z - startPosition.z) * progress;
 
         if (progress < 1) {
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateTeleport);
         }
     }
 
-    animate();
+    animateTeleport();
 }
 
 function showSigilQuote() {
@@ -424,31 +561,54 @@ function toggleFullMoonMode() {
 
     if (fullMoonMode) {
         // Change to moonlight atmosphere
-        scene.background = new THREE.Color(0x1a1a2e);
-        scene.fog = new THREE.Fog(0x1a1a2e, 10, 50);
+        scene.background = new THREE.Color(0x1a1a3e);
+        scene.fog = new THREE.Fog(0x1a1a3e, 20, 100);
 
-        // Increase ambient light
-        scene.children.forEach(child => {
+        // Increase ambient light and change color
+        scene.traverse((child) => {
             if (child instanceof THREE.AmbientLight) {
-                child.intensity = 0.8;
+                child.intensity = 1.0;
                 child.color = new THREE.Color(0xaaccff);
+            }
+            if (child instanceof THREE.HemisphereLight) {
+                child.intensity = 0.8;
             }
         });
 
         playSound('fullmoon-sound', true);
     } else {
         // Restore normal atmosphere
-        scene.background = new THREE.Color(0x000000);
-        scene.fog = new THREE.Fog(0x000000, 10, 50);
+        scene.background = new THREE.Color(0x0a0a0a);
+        scene.fog = new THREE.Fog(0x0a0a0a, 20, 100);
 
-        scene.children.forEach(child => {
+        scene.traverse((child) => {
             if (child instanceof THREE.AmbientLight) {
-                child.intensity = 0.3;
+                child.intensity = 0.6;
                 child.color = new THREE.Color(0xffffff);
+            }
+            if (child instanceof THREE.HemisphereLight) {
+                child.intensity = 0.5;
             }
         });
 
         stopSound('fullmoon-sound');
+    }
+}
+
+function toggleFlyingMode(enableFlying) {
+    isFlying = enableFlying;
+
+    // Update instructions
+    const instructions = document.getElementById('instructions');
+    if (isFlying) {
+        instructions.innerHTML = '<p>WASD - Move | Space - Up | Shift - Down | Mouse - Look | M - Full Moon | Ctrl+W - Walk Mode</p>';
+        console.log('Flying Mode Enabled');
+    } else {
+        instructions.innerHTML = '<p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | Click - Interact</p>';
+        console.log('Walking Mode Enabled');
+        // Reset vertical movement when switching to walking
+        moveUp = false;
+        moveDown = false;
     }
 }
 
@@ -458,11 +618,11 @@ function triggerEasterEgg() {
     easterEggDiv.style.display = 'block';
 
     // Add red lights
-    const redLight1 = new THREE.PointLight(0xff0000, 3, 20);
+    const redLight1 = new THREE.PointLight(0xff0000, 5, 30);
     redLight1.position.set(0, 2, 0);
     scene.add(redLight1);
 
-    const redLight2 = new THREE.PointLight(0xff0000, 3, 20);
+    const redLight2 = new THREE.PointLight(0xff0000, 5, 30);
     redLight2.position.set(5, 2, 5);
     scene.add(redLight2);
 
@@ -515,8 +675,10 @@ function checkAccessCode() {
         alert('✨ Secret Room Unlocked! Look for the hidden portal...');
         closePanel('patreon-panel');
 
-        // Add secret room indicator (optional)
-        // You could add a special glowing portal model here
+        // Add secret room indicator
+        const secretLight = new THREE.PointLight(0x00ff00, 2, 10);
+        secretLight.position.set(10, 1, 10);
+        scene.add(secretLight);
     } else {
         alert('❌ Invalid access code. Please check your Patreon for the correct code.');
     }
@@ -557,24 +719,36 @@ function animate() {
     requestAnimationFrame(animate);
 
     // Update controls
-    if (controls.isLocked) {
+    if (controls && controls.isLocked) {
         const delta = 0.1;
 
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
+        velocity.y -= velocity.y * 10.0 * delta;
 
         direction.z = Number(moveForward) - Number(moveBackward);
         direction.x = Number(moveRight) - Number(moveLeft);
+        direction.y = Number(moveUp) - Number(moveDown);
         direction.normalize();
 
-        if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
-        if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+        // Use the reduced movement speed
+        if (moveForward || moveBackward) velocity.z -= direction.z * movementSpeed * delta;
+        if (moveLeft || moveRight) velocity.x -= direction.x * movementSpeed * delta;
 
+        // Horizontal movement
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
 
-        // Keep camera at reasonable height
-        camera.position.y = Math.max(camera.position.y, 1.6);
+        // Vertical movement (only in flying mode)
+        if (isFlying) {
+            if (moveUp || moveDown) velocity.y -= direction.y * movementSpeed * delta;
+            camera.position.y += velocity.y * delta;
+            // Allow free vertical movement in flying mode
+            camera.position.y = Math.max(camera.position.y, 0.5); // Minimum height
+        } else {
+            // Keep camera at walking height in walking mode
+            camera.position.y = 1.6;
+        }
     }
 
     // Rotate logo model slowly
@@ -583,7 +757,9 @@ function animate() {
     }
 
     // Render
-    renderer.render(scene, camera);
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
 }
 
 // ======================
