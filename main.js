@@ -272,22 +272,6 @@ function addGroundPlane() {
     gridHelper.material.opacity = 0.3;
     gridHelper.material.transparent = true;
     scene.add(gridHelper);
-
-    // Add a fallback reference sphere at center
-    const sphereGeometry = new THREE.SphereGeometry(2, 32, 32);
-    const sphereMaterial = new THREE.MeshStandardMaterial({
-        color: 0x00d4ff,
-        emissive: 0x00d4ff,
-        emissiveIntensity: 0.5,
-        roughness: 0.2,
-        metalness: 0.9
-    });
-    const referenceSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    referenceSphere.position.set(0, 2, 0);
-    referenceSphere.castShadow = true;
-    scene.add(referenceSphere);
-
-    console.log('Reference sphere added at (0, 2, 0) - if you see this glowing cyan sphere, the scene is working!');
 }
 
 // ======================
