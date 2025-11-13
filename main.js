@@ -117,7 +117,7 @@ function initEntryScreen() {
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         // Play wow sound on user interaction (fixes autoplay policy)
-        playSound('wow-sound', true, 0.5);
+        playSound('wow-sound', true, 0.4);
 
         // Stop it shortly after as we transition to loading
         setTimeout(() => {
