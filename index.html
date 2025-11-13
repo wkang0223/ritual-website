@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritual Penang - Enter the Sacred Space</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Entry Screen -->
+    <div id="entry-screen">
+        <canvas id="smoke-canvas"></canvas>
+        <div id="sigil-container">
+            <svg id="ritual-sigil" viewBox="0 0 200 200">
+                <!-- Ritual Logo Sigil -->
+                <circle cx="100" cy="100" r="80" fill="none" stroke="url(#gradient)" stroke-width="2"/>
+                <circle cx="100" cy="100" r="60" fill="none" stroke="url(#gradient)" stroke-width="1.5"/>
+                <path d="M 100 20 L 100 180 M 20 100 L 180 100" stroke="url(#gradient)" stroke-width="2"/>
+                <circle cx="100" cy="100" r="10" fill="url(#gradient)"/>
+
+                <!-- Gradient Definition -->
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#ffd93d;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <p id="entry-text">Click the Sigil to Enter</p>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="display: none;">
+        <div class="loader"></div>
+        <p>Loading the Ritual Space...</p>
+    </div>
+
+    <!-- Main 3D Scene -->
+    <div id="scene-container" style="display: none;">
+        <canvas id="ritual-canvas"></canvas>
+
+        <!-- UI Overlays -->
+        <div id="instructions">
+            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Click - Interact</p>
+        </div>
+
+        <!-- Moon Hall Panel -->
+        <div id="moon-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('moon-panel')">×</button>
+            <h2>🌕 Moon Hall - Upcoming Events</h2>
+            <div class="event-list">
+                <div class="event">
+                    <h3>Full Moon Ritual</h3>
+                    <p>Date: Next Full Moon</p>
+                    <p>Join us for an immersive sound journey under the moon.</p>
+                </div>
+                <div class="event">
+                    <h3>Transmission Session</h3>
+                    <p>Weekly on Saturdays</p>
+                    <p>Experience the power of collective sound healing.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patreon Panel -->
+        <div id="patreon-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('patreon-panel')">×</button>
+            <h2>✨ Support Ritual</h2>
+            <p>Become a patron and unlock exclusive content:</p>
+            <ul>
+                <li>Access to Secret Room</li>
+                <li>Exclusive sound transmissions</li>
+                <li>Behind-the-scenes content</li>
+                <li>Early event access</li>
+            </ul>
+            <a href="https://patreon.com/ritualpenang" target="_blank" class="patreon-btn">Join on Patreon</a>
+            <div class="access-code">
+                <p>Already a patron?</p>
+                <input type="text" id="access-code-input" placeholder="Enter Access Code">
+                <button onclick="checkAccessCode()">Unlock Secret Room</button>
+            </div>
+        </div>
+
+        <!-- Brew Room Panel -->
+        <div id="brew-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('brew-panel')">×</button>
+            <h2>🍵 The Ritual Brew - YamChi</h2>
+            <p>A ceremonial blend crafted for deep listening and presence.</p>
+            <div class="brew-description">
+                <p>Our signature brew combines ancient herbs with modern alchemy,
+                designed to enhance your ritual experience.</p>
+                <p><strong>Ingredients:</strong> Sacred herbs, moonlight, intention</p>
+            </div>
+        </div>
+
+        <!-- Stage Panel -->
+        <div id="stage-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('stage-panel')">×</button>
+            <h2>🎭 Ritual Stage</h2>
+            <div class="media-gallery">
+                <p>Experience moments from our past rituals...</p>
+                <!-- Placeholder for images/videos -->
+                <div class="gallery-placeholder">
+                    <p>Gallery coming soon</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Panel -->
+        <div id="contact-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('contact-panel')">×</button>
+            <h2>📧 Sigil Gate - Connect</h2>
+            <div class="contact-info">
+                <p><strong>Instagram:</strong> <a href="https://instagram.com/ritualpenang" target="_blank">@ritualpenang</a></p>
+                <p><strong>Email:</strong> <a href="mailto:hello@ritualpenang.com">hello@ritualpenang.com</a></p>
+                <p><strong>Location:</strong> Penang, Malaysia</p>
+            </div>
+        </div>
+
+        <!-- Sigil Quote Popup -->
+        <div id="quote-popup" class="quote-popup" style="display: none;">
+            <p id="quote-text"></p>
+        </div>
+
+        <!-- Easter Egg Effect -->
+        <div id="easter-egg-effect" style="display: none;"></div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="ritual-sound" src="sounds/ritual-sound.mp3" preload="auto"></audio>
+    <audio id="fullmoon-sound" src="sounds/fullmoon-sound.mp3" preload="auto" loop></audio>
+    <audio id="portal-sound" src="sounds/portal-sound.mp3" preload="auto"></audio>
+    <audio id="easteregg-sound" src="sounds/easteregg-sound.mp3" preload="auto"></audio>
+    <audio id="ambient-sound" src="sounds/ambient.mp3" preload="auto" loop></audio>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+
+    <!-- Main JavaScript -->
+    <script src="main.js"></script>
+</body>
+</html>

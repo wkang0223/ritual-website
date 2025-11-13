@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code
+.claude/
+
+# Audio files (add your own, they might be large)
+# sounds/*.mp3
+
+# Thumbnails
+._*
+
+# Node modules (if you add any build tools later)
+node_modules/
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.log
+*.tmp

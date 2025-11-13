@@ -1,0 +1,379 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* Entry Screen */
+#entry-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#smoke-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+}
+
+#sigil-container {
+    position: relative;
+    text-align: center;
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+#sigil-container:hover {
+    transform: scale(1.1);
+}
+
+#ritual-sigil {
+    width: 300px;
+    height: 300px;
+    filter: drop-shadow(0 0 20px #ff6b6b) drop-shadow(0 0 40px #ffd93d);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+#entry-text {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #ffd93d;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 5px #ffd93d, 0 0 10px #ffd93d; }
+    to { text-shadow: 0 0 10px #ffd93d, 0 0 20px #ffd93d, 0 0 30px #ff6b6b; }
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.loader {
+    border: 4px solid #333;
+    border-top: 4px solid #ffd93d;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loading-screen p {
+    margin-top: 20px;
+    color: #ffd93d;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+/* Main Scene */
+#scene-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+#ritual-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Instructions */
+#instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px 30px;
+    border-radius: 10px;
+    border: 1px solid #ffd93d;
+    font-size: 14px;
+    color: #ffd93d;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* Info Panels */
+.info-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #ff6b6b;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(255, 107, 107, 0.5), 0 0 60px rgba(255, 217, 61, 0.3);
+    z-index: 100;
+    animation: panelAppear 0.3s ease-out;
+}
+
+@keyframes panelAppear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.info-panel h2 {
+    color: #ffd93d;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-align: center;
+    text-shadow: 0 0 10px #ffd93d;
+}
+
+.info-panel p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #ddd;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 30px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.close-btn:hover {
+    transform: scale(1.2);
+    color: #ffd93d;
+}
+
+/* Event List */
+.event {
+    background: rgba(255, 107, 107, 0.1);
+    padding: 15px;
+    margin: 15px 0;
+    border-left: 3px solid #ff6b6b;
+    border-radius: 5px;
+}
+
+.event h3 {
+    color: #ffd93d;
+    margin-bottom: 10px;
+}
+
+/* Patreon Button */
+.patreon-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: #fff;
+    padding: 12px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    margin: 20px 0;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.patreon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+}
+
+/* Access Code */
+.access-code {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+.access-code input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #ffd93d;
+    padding: 10px;
+    border-radius: 5px;
+    color: #fff;
+    width: 100%;
+    margin: 10px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.access-code button {
+    background: #ffd93d;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.access-code button:hover {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+/* Quote Popup */
+.quote-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #ffd93d;
+    padding: 30px 50px;
+    border-radius: 10px;
+    box-shadow: 0 0 40px rgba(255, 217, 61, 0.6);
+    animation: quoteAppear 0.4s ease-out;
+    z-index: 200;
+}
+
+@keyframes quoteAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.quote-popup p {
+    font-size: 20px;
+    font-style: italic;
+    color: #ffd93d;
+    text-align: center;
+    text-shadow: 0 0 10px #ffd93d;
+}
+
+/* Easter Egg Effect */
+#easter-egg-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.3), transparent);
+    pointer-events: none;
+    animation: easterEggPulse 1s ease-out;
+    z-index: 500;
+}
+
+@keyframes easterEggPulse {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(1); }
+}
+
+/* Scrollbar Styling */
+.info-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.info-panel::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.info-panel::-webkit-scrollbar-thumb {
+    background: #ffd93d;
+    border-radius: 4px;
+}
+
+.info-panel::-webkit-scrollbar-thumb:hover {
+    background: #ff6b6b;
+}
+
+/* Contact Links */
+.contact-info a {
+    color: #ffd93d;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.contact-info a:hover {
+    color: #ff6b6b;
+    text-shadow: 0 0 10px #ff6b6b;
+}
+
+/* Gallery Placeholder */
+.gallery-placeholder {
+    background: rgba(255, 107, 107, 0.1);
+    padding: 50px;
+    text-align: center;
+    border-radius: 10px;
+    margin-top: 20px;
+    border: 2px dashed #333;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-panel {
+        max-width: 90%;
+        padding: 20px;
+    }
+
+    #ritual-sigil {
+        width: 200px;
+        height: 200px;
+    }
+
+    #entry-text {
+        font-size: 14px;
+    }
+
+    #instructions {
+        font-size: 12px;
+        padding: 10px 20px;
+    }
+}
