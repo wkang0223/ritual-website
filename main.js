@@ -106,7 +106,7 @@ function initEntryScreen() {
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         // Play ritual music on user interaction (fixes autoplay policy)
-        playSound('ritual-sound', true, 0.7);
+        playSound('ritual-sound', true, 0.6);
 
         // Stop it shortly after as we transition to loading
         setTimeout(() => {
@@ -697,7 +697,7 @@ function onClick(event) {
 
         if (clickedObject.userData.panelId) {
             showPanel(clickedObject.userData.panelId);
-            playSound('ritual-sound', false, 0.7);
+            playSound('ritual-sound', false, 0.6);
             return;
         }
     }
@@ -794,7 +794,7 @@ function onMainModelClick() {
 function onLogoClick() {
     // Show Patreon panel
     showPanel('patreon-panel');
-    playSound('ritual-sound', false, 0.7);
+    playSound('ritual-sound', false, 0.6);
 }
 
 function teleportEffect() {
@@ -870,7 +870,7 @@ function toggleLights() {
 
         // Play fullmoon sound in dark mode (only if not already playing)
         if (!fullmoonSoundPlaying) {
-            playSound('fullmoon-sound', true, 0.7);
+            playSound('fullmoon-sound', true, 0.4);
             fullmoonSoundPlaying = true;
         }
 
