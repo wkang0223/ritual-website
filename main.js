@@ -22,6 +22,7 @@ let hoveredMarker = null;
 // Lighting control
 let lightsOn = true;
 let sceneLights = [];
+let fullmoonSoundPlaying = false;
 
 // Movement modes
 let isFlying = false;
@@ -865,8 +866,11 @@ function toggleLights() {
             });
         });
 
-        // Play fullmoon sound in dark mode
-        playSound('fullmoon-sound', true);
+        // Play fullmoon sound in dark mode (only if not already playing)
+        if (!fullmoonSoundPlaying) {
+            playSound('fullmoon-sound', true);
+            fullmoonSoundPlaying = true;
+        }
 
         console.log('Lights OFF - Markers glowing like stars');
     } else {
@@ -917,7 +921,10 @@ function toggleLights() {
         });
 
         // Stop fullmoon sound when lights are on
-        stopSound('fullmoon-sound');
+        if (fullmoonSoundPlaying) {
+            stopSound('fullmoon-sound');
+            fullmoonSoundPlaying = false;
+        }
 
         console.log('Lights ON - Normal lighting restored');
     }
@@ -1032,6 +1039,7 @@ function stopSound(soundId) {
     if (sound) {
         sound.pause();
         sound.currentTime = 0;
+        sound.loop = false;
     }
 }
 
