@@ -19,6 +19,10 @@ let secretRoomUnlocked = false;
 let interactiveMarkers = [];
 let hoveredMarker = null;
 
+// Lighting control
+let lightsOn = true;
+let sceneLights = [];
+
 // Movement modes
 let isFlying = false;
 let movementSpeed = 80; // Reduced from 400 for smoother navigation
@@ -179,11 +183,13 @@ function setupLights() {
     // Strong chrome ambient light for overall visibility
     const ambientLight = new THREE.AmbientLight(0xe8e8e8, 0.8);
     scene.add(ambientLight);
+    sceneLights.push(ambientLight);
 
     // Chrome hemisphere light for metallic atmosphere
     const hemiLight = new THREE.HemisphereLight(0xe8e8e8, 0xa8a8a8, 0.6);
     hemiLight.position.set(0, 20, 0);
     scene.add(hemiLight);
+    sceneLights.push(hemiLight);
 
     // Main directional light with cyan tint
     const dirLight = new THREE.DirectionalLight(0xd0f0ff, 1.2);
@@ -196,30 +202,36 @@ function setupLights() {
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
     scene.add(dirLight);
+    sceneLights.push(dirLight);
 
     // Secondary directional light from opposite side
     const dirLight2 = new THREE.DirectionalLight(0xc0c0c0, 0.7);
     dirLight2.position.set(-5, 10, -5);
     scene.add(dirLight2);
+    sceneLights.push(dirLight2);
 
     // Cyan point lights for chrome atmosphere
     const pointLight1 = new THREE.PointLight(0x00d4ff, 2, 35);
     pointLight1.position.set(5, 3, 5);
     pointLight1.castShadow = true;
     scene.add(pointLight1);
+    sceneLights.push(pointLight1);
 
     const pointLight2 = new THREE.PointLight(0x4a9eff, 2, 35);
     pointLight2.position.set(-5, 3, -5);
     pointLight2.castShadow = true;
     scene.add(pointLight2);
+    sceneLights.push(pointLight2);
 
     const pointLight3 = new THREE.PointLight(0xc0c0c0, 1.5, 30);
     pointLight3.position.set(5, 2, -5);
     scene.add(pointLight3);
+    sceneLights.push(pointLight3);
 
     const pointLight4 = new THREE.PointLight(0xe8e8e8, 1.5, 30);
     pointLight4.position.set(-5, 2, 5);
     scene.add(pointLight4);
+    sceneLights.push(pointLight4);
 
     // Overhead spotlight with blue-white light
     const spotLight = new THREE.SpotLight(0xf0f8ff, 1.3);
@@ -230,24 +242,29 @@ function setupLights() {
     spotLight.distance = 50;
     spotLight.castShadow = true;
     scene.add(spotLight);
+    sceneLights.push(spotLight);
 
     // Additional fill lights with chrome tones
     const fillLight1 = new THREE.PointLight(0xf5f5f5, 1, 25);
     fillLight1.position.set(0, 5, 10);
     scene.add(fillLight1);
+    sceneLights.push(fillLight1);
 
     const fillLight2 = new THREE.PointLight(0xf5f5f5, 1, 25);
     fillLight2.position.set(0, 5, -10);
     scene.add(fillLight2);
+    sceneLights.push(fillLight2);
 
     // Ground-level cyan rim lights
     const rimLight1 = new THREE.PointLight(0x00d4ff, 0.8, 18);
     rimLight1.position.set(8, 0.5, 0);
     scene.add(rimLight1);
+    sceneLights.push(rimLight1);
 
     const rimLight2 = new THREE.PointLight(0x4a9eff, 0.8, 18);
     rimLight2.position.set(-8, 0.5, 0);
     scene.add(rimLight2);
+    sceneLights.push(rimLight2);
 }
 
 // ======================
@@ -591,7 +608,7 @@ function onKeyDown(event) {
             }
             break;
         case 'KeyM':
-            toggleFullMoonMode();
+            toggleLights();
             break;
     }
 
@@ -810,42 +827,86 @@ function showSigilQuote() {
     }, 3000);
 }
 
-function toggleFullMoonMode() {
-    fullMoonMode = !fullMoonMode;
+function toggleLights() {
+    lightsOn = !lightsOn;
 
-    if (fullMoonMode) {
-        // Change to moonlight atmosphere
-        scene.background = new THREE.Color(0x1a1a3e);
-        scene.fog = new THREE.Fog(0x1a1a3e, 20, 100);
+    if (!lightsOn) {
+        // Lights OFF - Dark mode with glowing markers
+        scene.background = new THREE.Color(0x000000);
+        scene.fog = new THREE.Fog(0x000000, 10, 50);
 
-        // Increase ambient light and change color
-        scene.traverse((child) => {
-            if (child instanceof THREE.AmbientLight) {
-                child.intensity = 1.0;
-                child.color = new THREE.Color(0xaaccff);
-            }
-            if (child instanceof THREE.HemisphereLight) {
-                child.intensity = 0.8;
-            }
+        // Turn off all scene lights
+        sceneLights.forEach(light => {
+            light.intensity = 0;
         });
 
-        playSound('fullmoon-sound', true);
+        // Make interactive markers glow like stars
+        interactiveMarkers.forEach(marker => {
+            if (marker.userData.sphere) {
+                marker.userData.sphere.material.emissiveIntensity = 3.5; // Much brighter
+                marker.userData.sphere.material.roughness = 0.1;
+            }
+            if (marker.userData.ring) {
+                marker.userData.ring.material.opacity = 1.0;
+            }
+            // Increase point light intensity in markers
+            marker.traverse((child) => {
+                if (child instanceof THREE.PointLight) {
+                    child.intensity = 5; // Stronger glow
+                    child.distance = 20;
+                }
+            });
+        });
+
+        console.log('Lights OFF - Markers glowing like stars');
     } else {
-        // Restore normal atmosphere
+        // Lights ON - Restore normal lighting
         scene.background = new THREE.Color(0x0a0a0a);
-        scene.fog = new THREE.Fog(0x0a0a0a, 20, 100);
+        scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
 
-        scene.traverse((child) => {
-            if (child instanceof THREE.AmbientLight) {
-                child.intensity = 0.6;
-                child.color = new THREE.Color(0xffffff);
-            }
-            if (child instanceof THREE.HemisphereLight) {
-                child.intensity = 0.5;
+        // Restore all scene lights to original intensity
+        sceneLights.forEach(light => {
+            if (light instanceof THREE.AmbientLight) {
+                light.intensity = 0.8;
+            } else if (light instanceof THREE.HemisphereLight) {
+                light.intensity = 0.6;
+            } else if (light instanceof THREE.DirectionalLight) {
+                if (light.color.getHex() === 0xd0f0ff) {
+                    light.intensity = 1.2;
+                } else {
+                    light.intensity = 0.7;
+                }
+            } else if (light instanceof THREE.PointLight) {
+                const hex = light.color.getHex();
+                if (hex === 0x00d4ff || hex === 0x4a9eff) {
+                    light.intensity = light.distance > 30 ? 2 : 0.8;
+                } else if (hex === 0xc0c0c0 || hex === 0xe8e8e8 || hex === 0xf5f5f5) {
+                    light.intensity = 1.5;
+                }
+            } else if (light instanceof THREE.SpotLight) {
+                light.intensity = 1.3;
             }
         });
 
-        stopSound('fullmoon-sound');
+        // Return markers to normal glow
+        interactiveMarkers.forEach(marker => {
+            if (marker.userData.sphere) {
+                marker.userData.sphere.material.emissiveIntensity = marker.userData.originalEmissiveIntensity || 0.8;
+                marker.userData.sphere.material.roughness = 0.2;
+            }
+            if (marker.userData.ring) {
+                marker.userData.ring.material.opacity = 0.6;
+            }
+            // Reset point light intensity in markers
+            marker.traverse((child) => {
+                if (child instanceof THREE.PointLight) {
+                    child.intensity = 2;
+                    child.distance = 10;
+                }
+            });
+        });
+
+        console.log('Lights ON - Normal lighting restored');
     }
 }
 
