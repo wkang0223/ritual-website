@@ -57,19 +57,19 @@ function initEntryScreen() {
     entryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     entryRenderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Lights for entry scene
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Chrome/Silver lights for entry scene
+    const ambientLight = new THREE.AmbientLight(0xc0c0c0, 0.7);
     entryScene.add(ambientLight);
 
-    const light1 = new THREE.PointLight(0xff6b6b, 2, 10);
+    const light1 = new THREE.PointLight(0x00d4ff, 2.5, 12);
     light1.position.set(2, 2, 2);
     entryScene.add(light1);
 
-    const light2 = new THREE.PointLight(0xffd93d, 2, 10);
+    const light2 = new THREE.PointLight(0x4a9eff, 2.5, 12);
     light2.position.set(-2, -2, 2);
     entryScene.add(light2);
 
-    const light3 = new THREE.PointLight(0xff6b6b, 1.5, 10);
+    const light3 = new THREE.PointLight(0xe8e8e8, 2, 10);
     light3.position.set(0, 0, -2);
     entryScene.add(light3);
 
@@ -118,10 +118,10 @@ function animateEntryScreen() {
 // ======================
 
 function initRitualScene() {
-    // Scene
+    // Scene with chrome atmosphere
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0a0a);
-    scene.fog = new THREE.Fog(0x0a0a0a, 20, 100);
+    scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
 
     // Camera
     camera = new THREE.PerspectiveCamera(
@@ -167,17 +167,17 @@ function initRitualScene() {
 // ======================
 
 function setupLights() {
-    // Strong ambient light for overall visibility
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Strong chrome ambient light for overall visibility
+    const ambientLight = new THREE.AmbientLight(0xe8e8e8, 0.8);
     scene.add(ambientLight);
 
-    // Hemisphere light for natural lighting
-    const hemiLight = new THREE.HemisphereLight(0xffd93d, 0xff6b6b, 0.5);
+    // Chrome hemisphere light for metallic atmosphere
+    const hemiLight = new THREE.HemisphereLight(0xe8e8e8, 0xa8a8a8, 0.6);
     hemiLight.position.set(0, 20, 0);
     scene.add(hemiLight);
 
-    // Main directional light (like sun)
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    // Main directional light with cyan tint
+    const dirLight = new THREE.DirectionalLight(0xd0f0ff, 1.2);
     dirLight.position.set(5, 10, 5);
     dirLight.castShadow = true;
     dirLight.shadow.camera.top = 20;
@@ -189,54 +189,54 @@ function setupLights() {
     scene.add(dirLight);
 
     // Secondary directional light from opposite side
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+    const dirLight2 = new THREE.DirectionalLight(0xc0c0c0, 0.7);
     dirLight2.position.set(-5, 10, -5);
     scene.add(dirLight2);
 
-    // Point lights for ritual atmosphere
-    const pointLight1 = new THREE.PointLight(0xff6b6b, 1.5, 30);
+    // Cyan point lights for chrome atmosphere
+    const pointLight1 = new THREE.PointLight(0x00d4ff, 2, 35);
     pointLight1.position.set(5, 3, 5);
     pointLight1.castShadow = true;
     scene.add(pointLight1);
 
-    const pointLight2 = new THREE.PointLight(0xffd93d, 1.5, 30);
+    const pointLight2 = new THREE.PointLight(0x4a9eff, 2, 35);
     pointLight2.position.set(-5, 3, -5);
     pointLight2.castShadow = true;
     scene.add(pointLight2);
 
-    const pointLight3 = new THREE.PointLight(0xff8e53, 1.2, 25);
+    const pointLight3 = new THREE.PointLight(0xc0c0c0, 1.5, 30);
     pointLight3.position.set(5, 2, -5);
     scene.add(pointLight3);
 
-    const pointLight4 = new THREE.PointLight(0xffaa00, 1.2, 25);
+    const pointLight4 = new THREE.PointLight(0xe8e8e8, 1.5, 30);
     pointLight4.position.set(-5, 2, 5);
     scene.add(pointLight4);
 
-    // Overhead spotlight
-    const spotLight = new THREE.SpotLight(0xffffff, 1);
+    // Overhead spotlight with blue-white light
+    const spotLight = new THREE.SpotLight(0xf0f8ff, 1.3);
     spotLight.position.set(0, 15, 0);
     spotLight.angle = Math.PI / 4;
     spotLight.penumbra = 0.3;
     spotLight.decay = 2;
-    spotLight.distance = 40;
+    spotLight.distance = 50;
     spotLight.castShadow = true;
     scene.add(spotLight);
 
-    // Additional fill lights
-    const fillLight1 = new THREE.PointLight(0xffffff, 0.8, 20);
+    // Additional fill lights with chrome tones
+    const fillLight1 = new THREE.PointLight(0xf5f5f5, 1, 25);
     fillLight1.position.set(0, 5, 10);
     scene.add(fillLight1);
 
-    const fillLight2 = new THREE.PointLight(0xffffff, 0.8, 20);
+    const fillLight2 = new THREE.PointLight(0xf5f5f5, 1, 25);
     fillLight2.position.set(0, 5, -10);
     scene.add(fillLight2);
 
-    // Ground-level rim lights
-    const rimLight1 = new THREE.PointLight(0xff6b6b, 0.6, 15);
+    // Ground-level cyan rim lights
+    const rimLight1 = new THREE.PointLight(0x00d4ff, 0.8, 18);
     rimLight1.position.set(8, 0.5, 0);
     scene.add(rimLight1);
 
-    const rimLight2 = new THREE.PointLight(0xffd93d, 0.6, 15);
+    const rimLight2 = new THREE.PointLight(0x4a9eff, 0.8, 18);
     rimLight2.position.set(-8, 0.5, 0);
     scene.add(rimLight2);
 }
@@ -246,12 +246,13 @@ function setupLights() {
 // ======================
 
 function addGroundPlane() {
-    // Create a large ground plane
-    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    // Create a large chrome/metallic ground plane
+    const groundGeometry = new THREE.PlaneGeometry(150, 150);
     const groundMaterial = new THREE.MeshStandardMaterial({
-        color: 0x0a0a0a,
-        roughness: 0.8,
-        metalness: 0.2
+        color: 0x1a1a1a,
+        roughness: 0.3,
+        metalness: 0.8,
+        envMapIntensity: 1.5
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
@@ -259,11 +260,27 @@ function addGroundPlane() {
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Add subtle grid for depth perception
-    const gridHelper = new THREE.GridHelper(100, 50, 0xff6b6b, 0x333333);
-    gridHelper.material.opacity = 0.2;
+    // Add cyan grid for depth perception
+    const gridHelper = new THREE.GridHelper(150, 75, 0x00d4ff, 0x4a9eff);
+    gridHelper.material.opacity = 0.3;
     gridHelper.material.transparent = true;
     scene.add(gridHelper);
+
+    // Add a fallback reference sphere at center
+    const sphereGeometry = new THREE.SphereGeometry(2, 32, 32);
+    const sphereMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00d4ff,
+        emissive: 0x00d4ff,
+        emissiveIntensity: 0.5,
+        roughness: 0.2,
+        metalness: 0.9
+    });
+    const referenceSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    referenceSphere.position.set(0, 2, 0);
+    referenceSphere.castShadow = true;
+    scene.add(referenceSphere);
+
+    console.log('Reference sphere added at (0, 2, 0) - if you see this glowing cyan sphere, the scene is working!');
 }
 
 // ======================
@@ -387,17 +404,17 @@ function loadModels() {
                 if (child.isMesh) {
                     child.castShadow = true;
 
-                    // Make logo more visible
+                    // Make logo more visible with chrome/cyan glow
                     if (child.material) {
-                        child.material.emissive = new THREE.Color(0xffd93d);
-                        child.material.emissiveIntensity = 0.5;
+                        child.material.emissive = new THREE.Color(0x00d4ff);
+                        child.material.emissiveIntensity = 0.6;
                     }
                 }
             });
             scene.add(logoModel);
 
-            // Add strong glow effect to logo
-            const glowLight = new THREE.PointLight(0xffd93d, 3, 8);
+            // Add strong chrome/cyan glow effect to logo
+            const glowLight = new THREE.PointLight(0x00d4ff, 3, 8);
             glowLight.position.copy(logoModel.position);
             scene.add(glowLight);
 
