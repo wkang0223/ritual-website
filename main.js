@@ -2,9 +2,10 @@
 // RITUAL PENANG - WebGL Interactive Space
 // ======================
 
-// Mobile detection
+// Mobile detection - includes iOS and Android devices
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = /Android/i.test(navigator.userAgent);
 
 // Global variables
 let scene, camera, renderer, controls;
@@ -115,12 +116,12 @@ function initEntryScreen() {
 
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
-        // Play ritual music on user interaction (fixes autoplay policy)
-        playSound('ritual-sound', true, 0.2);
+        // Play wow sound on user interaction (fixes autoplay policy)
+        playSound('wow-sound', true, 0.5);
 
         // Stop it shortly after as we transition to loading
         setTimeout(() => {
-            stopSound('ritual-sound');
+            stopSound('wow-sound');
         }, 500);
 
         document.getElementById('entry-screen').style.display = 'none';
