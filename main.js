@@ -34,83 +34,16 @@ const sigilQuotes = [
 ];
 
 // ======================
-// ENTRY SCREEN WITH 3D LOGO
+// ENTRY SCREEN
 // ======================
 
 function initEntryScreen() {
-    const canvas = document.getElementById('entry-canvas');
-
-    // Entry Scene
-    entryScene = new THREE.Scene();
-    entryScene.background = new THREE.Color(0x000000);
-
-    // Entry Camera
-    entryCamera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    entryCamera.position.set(0, 0, 3);
-
-    // Entry Renderer
-    entryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    entryRenderer.setSize(window.innerWidth, window.innerHeight);
-
-    // Chrome/Silver lights for entry scene
-    const ambientLight = new THREE.AmbientLight(0xc0c0c0, 0.7);
-    entryScene.add(ambientLight);
-
-    const light1 = new THREE.PointLight(0x00d4ff, 2.5, 12);
-    light1.position.set(2, 2, 2);
-    entryScene.add(light1);
-
-    const light2 = new THREE.PointLight(0x4a9eff, 2.5, 12);
-    light2.position.set(-2, -2, 2);
-    entryScene.add(light2);
-
-    const light3 = new THREE.PointLight(0xe8e8e8, 2, 10);
-    light3.position.set(0, 0, -2);
-    entryScene.add(light3);
-
-    // Load ritual logo for entry
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-        'rituallogo.glb',
-        (gltf) => {
-            entryLogoModel = gltf.scene;
-            entryLogoModel.position.set(0, 0, 0);
-            entryLogoModel.scale.set(1.5, 1.5, 1.5);
-            entryScene.add(entryLogoModel);
-
-            // Animate entry screen
-            animateEntryScreen();
-        },
-        (xhr) => {
-            console.log('Entry logo: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-        },
-        (error) => {
-            console.error('Error loading entry logo:', error);
-        }
-    );
-
-    // Click to enter
+    // Simple click to enter handler
     document.getElementById('entry-screen').addEventListener('click', () => {
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
         initRitualScene();
     });
-}
-
-function animateEntryScreen() {
-    requestAnimationFrame(animateEntryScreen);
-
-    if (entryLogoModel) {
-        entryLogoModel.rotation.y += 0.01;
-        entryLogoModel.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
-    }
-
-    entryRenderer.render(entryScene, entryCamera);
 }
 
 // ======================
@@ -298,7 +231,7 @@ function loadModels() {
     loader.setDRACOLoader(dracoLoader);
 
     let modelsLoaded = 0;
-    const totalModels = 2;
+    const totalModels = 1; // Only loading main.glb
 
     function checkAllModelsLoaded() {
         modelsLoaded++;
@@ -401,41 +334,6 @@ function loadModels() {
         }
     );
 
-    // Load logo model for main scene
-    loader.load(
-        'rituallogo.glb',
-        (gltf) => {
-            logoModel = gltf.scene;
-            logoModel.position.set(0, 2, -3);
-            logoModel.scale.set(0.5, 0.5, 0.5);
-            logoModel.traverse((child) => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-
-                    // Make logo more visible with chrome/cyan glow
-                    if (child.material) {
-                        child.material.emissive = new THREE.Color(0x00d4ff);
-                        child.material.emissiveIntensity = 0.6;
-                    }
-                }
-            });
-            scene.add(logoModel);
-
-            // Add strong chrome/cyan glow effect to logo
-            const glowLight = new THREE.PointLight(0x00d4ff, 3, 8);
-            glowLight.position.copy(logoModel.position);
-            scene.add(glowLight);
-
-            checkAllModelsLoaded();
-        },
-        (xhr) => {
-            console.log('Logo model: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-        },
-        (error) => {
-            console.error('Error loading logo model:', error);
-            checkAllModelsLoaded();
-        }
-    );
 }
 
 // ======================
@@ -600,12 +498,6 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-
-    if (entryCamera && entryRenderer) {
-        entryCamera.aspect = window.innerWidth / window.innerHeight;
-        entryCamera.updateProjectionMatrix();
-        entryRenderer.setSize(window.innerWidth, window.innerHeight);
-    }
 }
 
 // ======================
@@ -864,11 +756,6 @@ function animate() {
             const targetHeight = 1.6;
             camera.position.y += (targetHeight - camera.position.y) * 0.1;
         }
-    }
-
-    // Rotate logo model slowly
-    if (logoModel) {
-        logoModel.rotation.y += 0.005;
     }
 
     // Render

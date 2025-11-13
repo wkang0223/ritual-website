@@ -9,41 +9,181 @@
 <body>
     <!-- Entry Screen -->
     <div id="entry-screen">
-        <canvas id="entry-canvas"></canvas>
-        <p id="entry-text">Click the Logo to Enter</p>
+        <h1 id="entry-title">RITUAL PENANG</h1>
+        <p id="entry-text">Click to Enter</p>
     </div>
 
     <!-- Loading Screen -->
     <div id="loading-screen" style="display: none;">
         <div class="loader"></div>
-        <p>Loading the Ritual Space...</p>
+        <p>Initializing Ritual Virtual Domain...</p>
     </div>
 
     <!-- Main 3D Scene -->
     <div id="scene-container" style="display: none;">
         <canvas id="ritual-canvas"></canvas>
 
+        <!-- Navigation Menu -->
+        <nav id="main-nav">
+            <div class="nav-content">
+                <button class="nav-item" onclick="showPanel('home-panel')">Home</button>
+                <button class="nav-item" onclick="showPanel('about-panel')">About</button>
+                <button class="nav-item" onclick="showPanel('event-panel')">Event Calendar</button>
+                <button class="nav-item" onclick="showPanel('workshop-panel')">Workshop</button>
+                <button class="nav-item" onclick="showPanel('address-panel')">Address</button>
+                <button class="nav-item" onclick="showPanel('archives-panel')">Archives</button>
+                <button class="nav-item" onclick="showPanel('merch-panel')">Ritual Merch</button>
+                <button class="nav-item" onclick="showPanel('design-panel')">Custom 3D Design & Printing</button>
+            </div>
+        </nav>
+
         <!-- UI Overlays -->
         <div id="instructions">
-            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | Click - Interact</p>
+            <p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | ESC - Menu</p>
         </div>
 
-        <!-- Moon Hall Panel -->
-        <div id="moon-panel" class="info-panel" style="display: none;">
-            <button class="close-btn" onclick="closePanel('moon-panel')">×</button>
-            <h2>🌕 Moon Hall - Upcoming Events</h2>
+        <!-- Home Panel -->
+        <div id="home-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('home-panel')">×</button>
+            <h2>Welcome to Ritual Penang</h2>
+            <p>A sacred space for sound healing, community gathering, and transformative experiences.</p>
+            <p>Explore our virtual domain to discover upcoming events, workshops, and the magic we create together.</p>
+            <p>Use WASD to move through the space and click on elements to interact.</p>
+        </div>
+
+        <!-- About Panel -->
+        <div id="about-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('about-panel')">×</button>
+            <h2>About Ritual</h2>
+            <p>Ritual Penang is a collective dedicated to creating immersive sound experiences and sacred gatherings.</p>
+            <h3>Our Mission</h3>
+            <p>We believe in the transformative power of sound, community, and intentional gathering. Through our events, we create spaces for deep listening, connection, and personal transformation.</p>
+            <h3>What We Offer</h3>
+            <ul>
+                <li>Full Moon Sound Rituals</li>
+                <li>Weekly Transmission Sessions</li>
+                <li>Sound Healing Workshops</li>
+                <li>Community Gatherings</li>
+                <li>Custom 3D Design & Printing Services</li>
+            </ul>
+        </div>
+
+        <!-- Event Calendar Panel -->
+        <div id="event-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('event-panel')">×</button>
+            <h2>🌕 Event Calendar</h2>
             <div class="event-list">
                 <div class="event">
                     <h3>Full Moon Ritual</h3>
-                    <p>Date: Next Full Moon</p>
-                    <p>Join us for an immersive sound journey under the moon.</p>
+                    <p><strong>Date:</strong> Next Full Moon</p>
+                    <p>Join us for an immersive sound journey under the moon. Experience deep healing through collective resonance.</p>
                 </div>
                 <div class="event">
                     <h3>Transmission Session</h3>
-                    <p>Weekly on Saturdays</p>
-                    <p>Experience the power of collective sound healing.</p>
+                    <p><strong>Schedule:</strong> Weekly on Saturdays</p>
+                    <p>Experience the power of collective sound healing in our weekly gatherings.</p>
+                </div>
+                <div class="event">
+                    <h3>New Moon Ceremony</h3>
+                    <p><strong>Date:</strong> Next New Moon</p>
+                    <p>Set intentions and plant seeds for the lunar cycle ahead.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- Workshop Panel -->
+        <div id="workshop-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('workshop-panel')">×</button>
+            <h2>Workshops</h2>
+            <h3>Sound Healing Fundamentals</h3>
+            <p>Learn the basics of sound healing, vocal toning, and resonance practices.</p>
+            <p><strong>Duration:</strong> 3-hour intensive workshop</p>
+
+            <h3>Sacred Space Design</h3>
+            <p>Discover how to create intentional spaces for ritual and gathering.</p>
+            <p><strong>Duration:</strong> Half-day workshop</p>
+
+            <h3>Ceremonial Brewing</h3>
+            <p>Learn to craft ceremonial brews and understand the alchemy of intention-infused beverages.</p>
+            <p><strong>Duration:</strong> 2-hour hands-on session</p>
+
+            <p><strong>Contact us for upcoming workshop dates and registration.</strong></p>
+        </div>
+
+        <!-- Address Panel -->
+        <div id="address-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('address-panel')">×</button>
+            <h2>Find Us</h2>
+            <div class="contact-info">
+                <h3>Location</h3>
+                <p><strong>Ritual Penang</strong></p>
+                <p>Penang, Malaysia</p>
+                <a href="https://maps.app.goo.gl/xRyHdJyHkOJO6UTfh" target="_blank" class="location-btn">View on Google Maps</a>
+
+                <h3>Contact Information</h3>
+                <p><strong>Instagram:</strong> <a href="https://www.instagram.com/ritual.penang" target="_blank">@ritual.penang</a></p>
+                <p><strong>Email:</strong> <a href="mailto:hello@ritualpenang.com">hello@ritualpenang.com</a></p>
+
+                <h3>Hours</h3>
+                <p>By appointment and during scheduled events</p>
+            </div>
+        </div>
+
+        <!-- Archives Panel -->
+        <div id="archives-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('archives-panel')">×</button>
+            <h2>Archives</h2>
+            <p>Explore moments from our past rituals and gatherings...</p>
+            <div class="gallery-placeholder">
+                <p>Photo and video gallery coming soon</p>
+                <p>Follow us on Instagram for the latest content</p>
+            </div>
+        </div>
+
+        <!-- Ritual Merch Panel -->
+        <div id="merch-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('merch-panel')">×</button>
+            <h2>Ritual Merch</h2>
+            <h3>🍵 The Ritual Brew - YamChi</h3>
+            <p>A ceremonial blend crafted for deep listening and presence.</p>
+            <div class="brew-description">
+                <p>Our signature brew combines ancient herbs with modern alchemy, designed to enhance your ritual experience.</p>
+                <p><strong>Ingredients:</strong> Sacred herbs, moonlight, intention</p>
+            </div>
+
+            <h3>Coming Soon</h3>
+            <ul>
+                <li>Ritual apparel and accessories</li>
+                <li>Sound healing tools</li>
+                <li>Custom designed ceremonial objects</li>
+            </ul>
+            <p><strong>Contact us for inquiries</strong></p>
+        </div>
+
+        <!-- Custom 3D Design & Printing Panel -->
+        <div id="design-panel" class="info-panel" style="display: none;">
+            <button class="close-btn" onclick="closePanel('design-panel')">×</button>
+            <h2>Custom 3D Design & Printing</h2>
+            <p>We offer custom 3D design and printing services for unique ceremonial objects, sacred geometry art, and functional pieces.</p>
+
+            <h3>Services Offered</h3>
+            <ul>
+                <li>Sacred Geometry Sculptures</li>
+                <li>Custom Ceremonial Objects</li>
+                <li>Architectural Models</li>
+                <li>Prototype Development</li>
+                <li>Art Installations</li>
+                <li>Functional Design Pieces</li>
+            </ul>
+
+            <h3>Process</h3>
+            <p>1. <strong>Consultation:</strong> Share your vision and requirements</p>
+            <p>2. <strong>Design:</strong> We create custom 3D models based on your needs</p>
+            <p>3. <strong>Review:</strong> Refine the design together</p>
+            <p>4. <strong>Production:</strong> High-quality 3D printing</p>
+            <p>5. <strong>Delivery:</strong> Receive your unique creation</p>
+
+            <p><strong>Contact us to discuss your project</strong></p>
         </div>
 
         <!-- Patreon Panel -->
