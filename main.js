@@ -367,7 +367,7 @@ function createMarker(name, panelId, color, position) {
     context.fillStyle = 'rgba(0, 0, 0, 0.7)';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    context.font = 'Bold 48px Arial';
+    context.font = 'Bold 48px RX100, Arial';
     context.fillStyle = '#ffffff';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
