@@ -34,16 +34,83 @@ const sigilQuotes = [
 ];
 
 // ======================
-// ENTRY SCREEN
+// ENTRY SCREEN WITH 3D LOGO
 // ======================
 
 function initEntryScreen() {
-    // Simple click to enter handler
+    const canvas = document.getElementById('entry-canvas');
+
+    // Entry Scene
+    entryScene = new THREE.Scene();
+    entryScene.background = new THREE.Color(0x000000);
+
+    // Entry Camera
+    entryCamera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    entryCamera.position.set(0, 0, 3);
+
+    // Entry Renderer
+    entryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    entryRenderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Chrome/Silver lights for entry scene
+    const ambientLight = new THREE.AmbientLight(0xc0c0c0, 0.7);
+    entryScene.add(ambientLight);
+
+    const light1 = new THREE.PointLight(0x00d4ff, 2.5, 12);
+    light1.position.set(2, 2, 2);
+    entryScene.add(light1);
+
+    const light2 = new THREE.PointLight(0x4a9eff, 2.5, 12);
+    light2.position.set(-2, -2, 2);
+    entryScene.add(light2);
+
+    const light3 = new THREE.PointLight(0xe8e8e8, 2, 10);
+    light3.position.set(0, 0, -2);
+    entryScene.add(light3);
+
+    // Load ritual logo for entry
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+        'rituallogo.glb',
+        (gltf) => {
+            entryLogoModel = gltf.scene;
+            entryLogoModel.position.set(0, 0, 0);
+            entryLogoModel.scale.set(1.5, 1.5, 1.5);
+            entryScene.add(entryLogoModel);
+
+            // Animate entry screen
+            animateEntryScreen();
+        },
+        (xhr) => {
+            console.log('Entry logo: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        (error) => {
+            console.error('Error loading entry logo:', error);
+        }
+    );
+
+    // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
         initRitualScene();
     });
+}
+
+function animateEntryScreen() {
+    requestAnimationFrame(animateEntryScreen);
+
+    if (entryLogoModel) {
+        entryLogoModel.rotation.y += 0.01;
+        entryLogoModel.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+    }
+
+    entryRenderer.render(entryScene, entryCamera);
 }
 
 // ======================
@@ -498,6 +565,12 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (entryCamera && entryRenderer) {
+        entryCamera.aspect = window.innerWidth / window.innerHeight;
+        entryCamera.updateProjectionMatrix();
+        entryRenderer.setSize(window.innerWidth, window.innerHeight);
+    }
 }
 
 // ======================

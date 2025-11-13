@@ -103,35 +103,22 @@ li {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 30px;
     z-index: 1000;
     cursor: pointer;
 }
 
-#entry-title {
-    font-family: 'NaNSuccess', 'Arial', sans-serif;
-    font-size: 4rem;
-    font-weight: 300;
-    letter-spacing: 0.2em;
-    background: linear-gradient(135deg, var(--chrome-bright), var(--chrome-primary), var(--accent-cyan));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.4));
-    animation: titlePulse 2s infinite alternate;
-    margin: 0;
-}
-
-@keyframes titlePulse {
-    from {
-        filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.4));
-    }
-    to {
-        filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.6));
-    }
+#entry-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 #entry-text {
+    position: relative;
+    z-index: 10;
+    margin-top: 50vh;
     font-family: 'NaNSuccess', 'Arial', sans-serif;
     font-size: 1.5rem;
     font-weight: 300;
@@ -706,10 +693,6 @@ li {
         font-size: 0.875rem;
     }
 
-    #entry-title {
-        font-size: 2.5rem;
-    }
-
     #entry-text {
         font-size: 1.1rem;
         letter-spacing: 0.2em;
@@ -796,11 +779,6 @@ li {
 
     .info-panel h2 {
         font-size: 1.5rem;
-    }
-
-    #entry-title {
-        font-size: 1.8rem;
-        letter-spacing: 0.15em;
     }
 
     #entry-text {
