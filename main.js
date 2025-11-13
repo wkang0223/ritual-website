@@ -91,8 +91,8 @@ function initEntryScreen() {
             entryLogoModel.scale.set(1.5, 1.5, 1.5);
             entryScene.add(entryLogoModel);
 
-            // Play ambient music on entry screen
-            playSound('ambient-sound', true);
+            // Play ritual music on entry screen
+            playSound('ritual-sound', true);
 
             // Animate entry screen
             animateEntryScreen();
@@ -108,7 +108,7 @@ function initEntryScreen() {
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         // Stop entry screen music
-        stopSound('ambient-sound');
+        stopSound('ritual-sound');
 
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
