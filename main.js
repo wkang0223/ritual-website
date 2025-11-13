@@ -91,6 +91,9 @@ function initEntryScreen() {
             entryLogoModel.scale.set(1.5, 1.5, 1.5);
             entryScene.add(entryLogoModel);
 
+            // Play ambient music on entry screen
+            playSound('ambient-sound', true);
+
             // Animate entry screen
             animateEntryScreen();
         },
@@ -104,6 +107,9 @@ function initEntryScreen() {
 
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
+        // Stop entry screen music
+        stopSound('ambient-sound');
+
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
         initRitualScene();
@@ -430,7 +436,8 @@ function loadModels() {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('scene-container').style.display = 'block';
             controls.lock();
-            playAmbientSound();
+            // Restart ambient sound for main scene (it was stopped when entry screen closed)
+            playSound('ambient-sound', true);
         }
     }
 
@@ -858,6 +865,9 @@ function toggleLights() {
             });
         });
 
+        // Play fullmoon sound in dark mode
+        playSound('fullmoon-sound', true);
+
         console.log('Lights OFF - Markers glowing like stars');
     } else {
         // Lights ON - Restore normal lighting
@@ -905,6 +915,9 @@ function toggleLights() {
                 }
             });
         });
+
+        // Stop fullmoon sound when lights are on
+        stopSound('fullmoon-sound');
 
         console.log('Lights ON - Normal lighting restored');
     }
@@ -1022,9 +1035,6 @@ function stopSound(soundId) {
     }
 }
 
-function playAmbientSound() {
-    playSound('ambient-sound', true);
-}
 
 // ======================
 // ANIMATION LOOP
