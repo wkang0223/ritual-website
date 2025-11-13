@@ -439,8 +439,8 @@ function loadModels() {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('scene-container').style.display = 'block';
             controls.lock();
-            // Restart ambient sound for main scene at 15% volume to avoid audio chaos
-            playSound('ambient-sound', true, 0.15);
+            // Restart ambient sound for main scene at 35% volume for audible background
+            playSound('ambient-sound', true, 0.35);
         }
     }
 
