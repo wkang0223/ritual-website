@@ -309,7 +309,7 @@ li {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-image: url('textbackground.PNG');
+    background-image: url('textbackground.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
