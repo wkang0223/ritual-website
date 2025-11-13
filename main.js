@@ -93,7 +93,7 @@ function initEntryScreen() {
             entryScene.add(entryLogoModel);
 
             // Play ritual music on entry screen
-            playSound('ritual-sound', true);
+            playSound('ritual-sound', true, 0.7);
 
             // Animate entry screen
             animateEntryScreen();
@@ -695,7 +695,7 @@ function onClick(event) {
 
         if (clickedObject.userData.panelId) {
             showPanel(clickedObject.userData.panelId);
-            playSound('ritual-sound');
+            playSound('ritual-sound', false, 0.7);
             return;
         }
     }
@@ -781,7 +781,7 @@ function onWindowResize() {
 function onMainModelClick() {
     // Trigger teleportation effect
     teleportEffect();
-    playSound('portal-sound');
+    playSound('portal-sound', false, 0.6);
 
     // Show random sigil quote
     setTimeout(() => {
@@ -792,7 +792,7 @@ function onMainModelClick() {
 function onLogoClick() {
     // Show Patreon panel
     showPanel('patreon-panel');
-    playSound('ritual-sound');
+    playSound('ritual-sound', false, 0.7);
 }
 
 function teleportEffect() {
@@ -868,7 +868,7 @@ function toggleLights() {
 
         // Play fullmoon sound in dark mode (only if not already playing)
         if (!fullmoonSoundPlaying) {
-            playSound('fullmoon-sound', true);
+            playSound('fullmoon-sound', true, 0.7);
             fullmoonSoundPlaying = true;
         }
 
@@ -962,7 +962,7 @@ function triggerEasterEgg() {
     scene.add(redLight2);
 
     // Play sound
-    playSound('easteregg-sound');
+    playSound('easteregg-sound', false, 0.6);
 
     // Remove effect after 1 second
     setTimeout(() => {
@@ -1026,9 +1026,10 @@ window.checkAccessCode = checkAccessCode;
 // AUDIO MANAGEMENT
 // ======================
 
-function playSound(soundId, loop = false) {
+function playSound(soundId, loop = false, volume = 1.0) {
     const sound = document.getElementById(soundId);
     if (sound) {
+        sound.volume = volume;
         sound.loop = loop;
         sound.play().catch(e => console.log('Audio play failed:', e));
     }
