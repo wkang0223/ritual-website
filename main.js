@@ -93,26 +93,34 @@ function initEntryScreen() {
     light3.position.set(0, 0, -2);
     entryScene.add(light3);
 
-    // Load ritual logo for entry
-    const loader = new THREE.GLTFLoader();
-    loader.load(
-        'rituallogo.glb',
-        (gltf) => {
-            entryLogoModel = gltf.scene;
-            entryLogoModel.position.set(0, 0, 0);
-            entryLogoModel.scale.set(1.5, 1.5, 1.5);
-            entryScene.add(entryLogoModel);
+    // Load ritual logo for entry - skip on mobile to save memory
+    if (!isMobile) {
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            'rituallogo.glb',
+            (gltf) => {
+                entryLogoModel = gltf.scene;
+                entryLogoModel.position.set(0, 0, 0);
+                entryLogoModel.scale.set(1.5, 1.5, 1.5);
+                entryScene.add(entryLogoModel);
 
-            // Animate entry screen
-            animateEntryScreen();
-        },
-        (xhr) => {
-            console.log('Entry logo: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
-        },
-        (error) => {
-            console.error('Error loading entry logo:', error);
-        }
-    );
+                // Animate entry screen
+                animateEntryScreen();
+            },
+            (xhr) => {
+                console.log('Entry logo: ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+            },
+            (error) => {
+                console.error('Error loading entry logo:', error);
+                // Start animation anyway if logo fails to load
+                animateEntryScreen();
+            }
+        );
+    } else {
+        // Mobile: Skip logo loading, just show text and start animation
+        console.log('Mobile detected: Skipping entry logo to save memory');
+        animateEntryScreen();
+    }
 
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
@@ -124,10 +132,50 @@ function initEntryScreen() {
             stopSound('wow-sound');
         }, 500);
 
+        // Clean up entry scene to free memory before loading main scene
+        cleanupEntryScene();
+
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
-        initRitualScene();
+
+        // Wrap in try-catch for iOS Safari stability
+        try {
+            initRitualScene();
+        } catch (error) {
+            console.error('Error initializing main scene:', error);
+            document.getElementById('loading-screen').innerHTML = '<p>Error loading 3D scene. Please refresh the page or try on desktop.</p>';
+        }
     });
+}
+
+// Clean up entry scene resources
+function cleanupEntryScene() {
+    if (entryLogoModel) {
+        entryLogoModel.traverse((child) => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(m => m.dispose());
+                } else {
+                    child.material.dispose();
+                }
+            }
+        });
+        entryScene.remove(entryLogoModel);
+        entryLogoModel = null;
+    }
+
+    if (entryRenderer) {
+        entryRenderer.dispose();
+        entryRenderer = null;
+    }
+
+    if (entryScene) {
+        entryScene.clear();
+        entryScene = null;
+    }
+
+    console.log('Entry scene cleaned up to free memory');
 }
 
 function animateEntryScreen() {
@@ -167,14 +215,42 @@ function initRitualScene() {
     renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: !isMobile, // Disable antialiasing on mobile
-        powerPreference: "high-performance"
+        powerPreference: "high-performance",
+        failIfMajorPerformanceCaveat: false // Don't fail on low-end devices
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2)); // Cap pixel ratio on mobile
+
+    // Mobile: Limit canvas size to prevent memory crashes on iOS Safari
+    if (isMobile) {
+        const maxWidth = Math.min(window.innerWidth, 1280);
+        const maxHeight = Math.min(window.innerHeight, 720);
+        renderer.setSize(maxWidth, maxHeight);
+        renderer.setPixelRatio(1); // Use 1:1 pixel ratio on mobile for stability
+        console.log(`Mobile: Canvas size limited to ${maxWidth}x${maxHeight}, pixelRatio=1`);
+    } else {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
+
     renderer.shadowMap.enabled = !isMobile; // Disable shadows on mobile for performance
     if (!isMobile) {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     }
+
+    // Add WebGL context loss handlers for iOS Safari stability
+    canvas.addEventListener('webglcontextlost', (event) => {
+        event.preventDefault();
+        console.error('WebGL context lost! Attempting to recover...');
+        document.getElementById('loading-screen').style.display = 'flex';
+        document.getElementById('loading-screen').innerHTML = '<p>Connection lost. Refreshing...</p>';
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    }, false);
+
+    canvas.addEventListener('webglcontextrestored', () => {
+        console.log('WebGL context restored');
+        initRitualScene();
+    }, false);
 
     // Raycaster for clicking
     raycaster = new THREE.Raycaster();
@@ -207,6 +283,24 @@ function initRitualScene() {
 // ======================
 
 function setupLights() {
+    // Mobile: Use minimal lighting to reduce GPU load and prevent crashes
+    if (isMobile) {
+        // Single ambient light for mobile
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambientLight);
+        sceneLights.push(ambientLight);
+
+        // Single hemisphere light for basic depth
+        const hemiLight = new THREE.HemisphereLight(0xe8e8e8, 0xa8a8a8, 0.8);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+        sceneLights.push(hemiLight);
+
+        console.log('Mobile: Using simplified lighting (2 lights total)');
+        return; // Skip all other lights on mobile
+    }
+
+    // Desktop: Full lighting setup
     // Strong chrome ambient light for overall visibility
     const ambientLight = new THREE.AmbientLight(0xe8e8e8, 0.8);
     scene.add(ambientLight);
