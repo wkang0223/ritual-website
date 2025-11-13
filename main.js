@@ -288,7 +288,15 @@ function addGroundPlane() {
 // ======================
 
 function loadModels() {
+    // Setup GLTF loader with Draco support
     const loader = new THREE.GLTFLoader();
+
+    // Setup Draco decoder for compressed models
+    const dracoLoader = new THREE.DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+    dracoLoader.setDecoderConfig({ type: 'js' });
+    loader.setDRACOLoader(dracoLoader);
+
     let modelsLoaded = 0;
     const totalModels = 2;
 
