@@ -106,7 +106,7 @@ function initEntryScreen() {
     // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
         // Play ritual music on user interaction (fixes autoplay policy)
-        playSound('ritual-sound', true, 0.4);
+        playSound('ritual-sound', true, 0.2);
 
         // Stop it shortly after as we transition to loading
         setTimeout(() => {
@@ -697,7 +697,7 @@ function onClick(event) {
 
         if (clickedObject.userData.panelId) {
             showPanel(clickedObject.userData.panelId);
-            playSound('ritual-sound', false, 0.4);
+            playSound('ritual-sound', false, 0.2);
             return;
         }
     }
@@ -794,7 +794,7 @@ function onMainModelClick() {
 function onLogoClick() {
     // Show Patreon panel
     showPanel('patreon-panel');
-    playSound('ritual-sound', false, 0.4);
+    playSound('ritual-sound', false, 0.2);
 }
 
 function teleportEffect() {
