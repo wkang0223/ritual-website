@@ -134,7 +134,9 @@ function initRitualScene() {
         0.1,
         1000
     );
-    camera.position.set(0, 5, 15); // Start further back and higher for better view
+    // Position camera at the entrance/inside the main.glb environment
+    // Model center is at approximately (-5.66, 5.57, -0.35)
+    camera.position.set(-5.66, 5.57, 10); // Positioned to look into the environment
 
     // Renderer
     const canvas = document.getElementById('ritual-canvas');
@@ -494,6 +496,9 @@ function loadModels() {
             console.log('Camera is looking at center:', center);
             console.log('Distance from camera to model:', camera.position.distanceTo(center).toFixed(2));
             console.log('===================');
+
+            // Position camera to look at the model center
+            camera.lookAt(center.x, center.y, center.z);
 
             checkAllModelsLoaded();
         },
