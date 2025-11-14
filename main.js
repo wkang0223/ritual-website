@@ -342,7 +342,7 @@ function createMarker(name, panelId, color, position) {
     // FIX: Use relative path
     const loader = new THREE.GLTFLoader();
     loader.load(
-        'marker.glb', // ✅ CORRECT: Relative path
+        'models/marker.glb', // ✅ CORRECT: Relative path
         (gltf) => {
             const model = gltf.scene;
             model.traverse((child) => {
