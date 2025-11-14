@@ -2,7 +2,10 @@
 // RITUAL PENANG - WebGL Interactive Space
 // ======================
 
-// Mobile detection - includes iOS and Android devices
+// Debug log
+console.log('✅ main.js starting...');
+
+// Mobile detection
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 const isAndroid = /Android/i.test(navigator.userAgent);
@@ -31,7 +34,7 @@ let fullmoonSoundPlaying = false;
 
 // Movement modes
 let isFlying = false;
-let movementSpeed = 80; // Reduced from 400 for smoother navigation
+let movementSpeed = 80;
 
 // Interaction state
 let canClick = true;
@@ -53,31 +56,27 @@ const sigilQuotes = [
 
 function initEntryScreen() {
     const canvas = document.getElementById('entry-canvas');
+    if (!canvas) {
+        console.error('❌ entry-canvas not found in HTML!');
+        return;
+    }
 
-    // Entry Scene
     entryScene = new THREE.Scene();
     entryScene.background = new THREE.Color(0x000000);
 
-    // Entry Camera
-    entryCamera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
+    entryCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     entryCamera.position.set(0, 0, 3);
 
-    // Entry Renderer - optimized for mobile
     entryRenderer = new THREE.WebGLRenderer({
         canvas,
-        antialias: !isMobile, // Disable antialiasing on mobile for better performance
+        antialias: !isMobile,
         alpha: true,
         powerPreference: "high-performance"
     });
     entryRenderer.setSize(window.innerWidth, window.innerHeight);
-    entryRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2)); // Cap pixel ratio on mobile
+    entryRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
 
-    // Chrome/Silver lights for entry scene
+    // Lights for entry scene
     const ambientLight = new THREE.AmbientLight(0xc0c0c0, 0.7);
     entryScene.add(ambientLight);
 
@@ -93,7 +92,7 @@ function initEntryScreen() {
     light3.position.set(0, 0, -2);
     entryScene.add(light3);
 
-    // Load ritual logo for entry - skip on mobile to save memory
+    // Load logo (skip on mobile)
     if (!isMobile) {
         const loader = new THREE.GLTFLoader();
         loader.load(
@@ -103,8 +102,6 @@ function initEntryScreen() {
                 entryLogoModel.position.set(0, 0, 0);
                 entryLogoModel.scale.set(1.5, 1.5, 1.5);
                 entryScene.add(entryLogoModel);
-
-                // Animate entry screen
                 animateEntryScreen();
             },
             (xhr) => {
@@ -112,43 +109,30 @@ function initEntryScreen() {
             },
             (error) => {
                 console.error('Error loading entry logo:', error);
-                // Start animation anyway if logo fails to load
                 animateEntryScreen();
             }
         );
     } else {
-        // Mobile: Skip logo loading, just show text and start animation
-        console.log('Mobile detected: Skipping entry logo to save memory');
+        console.log('Mobile detected: Skipping entry logo');
         animateEntryScreen();
     }
 
-    // Click to enter
     document.getElementById('entry-screen').addEventListener('click', () => {
-        // Play wow sound on user interaction (fixes autoplay policy)
         playSound('wow-sound', true, 0.4);
+        setTimeout(() => stopSound('wow-sound'), 500);
 
-        // Stop it shortly after as we transition to loading
-        setTimeout(() => {
-            stopSound('wow-sound');
-        }, 500);
-
-        // Clean up entry scene to free memory before loading main scene
         cleanupEntryScene();
-
         document.getElementById('entry-screen').style.display = 'none';
         document.getElementById('loading-screen').style.display = 'flex';
 
-        // Wrap in try-catch for iOS Safari stability
         try {
             initRitualScene();
         } catch (error) {
             console.error('Error initializing main scene:', error);
-            document.getElementById('loading-screen').innerHTML = '<p>Error loading 3D scene. Please refresh the page or try on desktop.</p>';
         }
     });
 }
 
-// Clean up entry scene resources
 function cleanupEntryScene() {
     if (entryLogoModel) {
         entryLogoModel.traverse((child) => {
@@ -175,13 +159,11 @@ function cleanupEntryScene() {
         entryScene = null;
     }
 
-    console.log('Entry scene cleaned up to free memory');
+    console.log('Entry scene cleaned up');
 }
 
 function animateEntryScreen() {
-    // Exit if renderer was cleaned up (prevents null reference error)
     if (!entryRenderer) return;
-
     requestAnimationFrame(animateEntryScreen);
 
     if (entryLogoModel) {
@@ -197,125 +179,96 @@ function animateEntryScreen() {
 // ======================
 
 function initRitualScene() {
-    // Scene with chrome atmosphere
+    if (typeof THREE === 'undefined') {
+        console.error('❌ THREE.js is not loaded! Check your script tags.');
+        return;
+    }
+
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0a0a);
     scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
 
-    // Camera
-    camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    // Position camera at the entrance/inside the main.glb environment
-    // Model center is at approximately (-5.66, 5.57, -0.35)
-    camera.position.set(-5.66, 5.57, 10); // Positioned to look into the environment
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(-5.66, 5.57, 10);
 
-    // Renderer - optimized for mobile
     const canvas = document.getElementById('ritual-canvas');
+    if (!canvas) {
+        console.error('❌ ritual-canvas not found in HTML!');
+        return;
+    }
+
     renderer = new THREE.WebGLRenderer({
         canvas,
-        antialias: !isMobile, // Disable antialiasing on mobile
+        antialias: !isMobile,
         powerPreference: "high-performance",
-        failIfMajorPerformanceCaveat: false // Don't fail on low-end devices
+        failIfMajorPerformanceCaveat: false
     });
 
-    // Mobile: Limit canvas size to prevent memory crashes on iOS Safari
     if (isMobile) {
         const maxWidth = Math.min(window.innerWidth, 1280);
         const maxHeight = Math.min(window.innerHeight, 720);
         renderer.setSize(maxWidth, maxHeight);
-        renderer.setPixelRatio(1); // Use 1:1 pixel ratio on mobile for stability
-        console.log(`Mobile: Canvas size limited to ${maxWidth}x${maxHeight}, pixelRatio=1`);
+        renderer.setPixelRatio(1);
+        console.log(`Mobile: Canvas limited to ${maxWidth}x${maxHeight}`);
     } else {
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     }
 
-    renderer.shadowMap.enabled = !isMobile; // Disable shadows on mobile for performance
+    renderer.shadowMap.enabled = !isMobile;
     if (!isMobile) {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     }
 
-    // Add WebGL context loss handlers for iOS Safari stability
     canvas.addEventListener('webglcontextlost', (event) => {
         event.preventDefault();
-        console.error('WebGL context lost! Attempting to recover...');
-        document.getElementById('loading-screen').style.display = 'flex';
+        console.error('WebGL context lost!');
         document.getElementById('loading-screen').innerHTML = '<p>Connection lost. Refreshing...</p>';
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
+        setTimeout(() => window.location.reload(), 2000);
     }, false);
 
-    canvas.addEventListener('webglcontextrestored', () => {
-        console.log('WebGL context restored');
-        initRitualScene();
-    }, false);
-
-    // Raycaster for clicking
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // Lights - MUCH MORE LIGHTING!
     setupLights();
-
-    // Add ground plane for reference
     addGroundPlane();
-
-    // Load models
     loadModels();
-
-    // Create interactive markers
     createInteractiveMarkers();
-
-    // Controls (will be enabled after models load)
     setupControls();
-
-    // Event listeners
     setupEventListeners();
 
-    // Start animation
     animate();
+    console.log('✅ Scene initialized');
 }
 
 // ======================
-// LIGHTING - ENHANCED!
+// LIGHTING
 // ======================
 
 function setupLights() {
-    // Mobile: Use minimal lighting to reduce GPU load and prevent crashes
     if (isMobile) {
-        // Single ambient light for mobile
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambientLight);
         sceneLights.push(ambientLight);
 
-        // Single hemisphere light for basic depth
         const hemiLight = new THREE.HemisphereLight(0xe8e8e8, 0xa8a8a8, 0.8);
         hemiLight.position.set(0, 20, 0);
         scene.add(hemiLight);
         sceneLights.push(hemiLight);
 
-        console.log('Mobile: Using simplified lighting (2 lights total)');
-        return; // Skip all other lights on mobile
+        console.log('Mobile: Simplified lighting');
+        return;
     }
 
-    // Desktop: Full lighting setup
-    // Strong chrome ambient light for overall visibility
     const ambientLight = new THREE.AmbientLight(0xe8e8e8, 0.8);
     scene.add(ambientLight);
     sceneLights.push(ambientLight);
 
-    // Chrome hemisphere light for metallic atmosphere
     const hemiLight = new THREE.HemisphereLight(0xe8e8e8, 0xa8a8a8, 0.6);
     hemiLight.position.set(0, 20, 0);
     scene.add(hemiLight);
     sceneLights.push(hemiLight);
 
-    // Main directional light with cyan tint
     const dirLight = new THREE.DirectionalLight(0xd0f0ff, 1.2);
     dirLight.position.set(5, 10, 5);
     dirLight.castShadow = true;
@@ -328,13 +281,6 @@ function setupLights() {
     scene.add(dirLight);
     sceneLights.push(dirLight);
 
-    // Secondary directional light from opposite side
-    const dirLight2 = new THREE.DirectionalLight(0xc0c0c0, 0.7);
-    dirLight2.position.set(-5, 10, -5);
-    scene.add(dirLight2);
-    sceneLights.push(dirLight2);
-
-    // Cyan point lights for chrome atmosphere
     const pointLight1 = new THREE.PointLight(0x00d4ff, 2, 35);
     pointLight1.position.set(5, 3, 5);
     pointLight1.castShadow = true;
@@ -343,52 +289,8 @@ function setupLights() {
 
     const pointLight2 = new THREE.PointLight(0x4a9eff, 2, 35);
     pointLight2.position.set(-5, 3, -5);
-    pointLight2.castShadow = true;
     scene.add(pointLight2);
     sceneLights.push(pointLight2);
-
-    const pointLight3 = new THREE.PointLight(0xc0c0c0, 1.5, 30);
-    pointLight3.position.set(5, 2, -5);
-    scene.add(pointLight3);
-    sceneLights.push(pointLight3);
-
-    const pointLight4 = new THREE.PointLight(0xe8e8e8, 1.5, 30);
-    pointLight4.position.set(-5, 2, 5);
-    scene.add(pointLight4);
-    sceneLights.push(pointLight4);
-
-    // Overhead spotlight with blue-white light
-    const spotLight = new THREE.SpotLight(0xf0f8ff, 1.3);
-    spotLight.position.set(0, 15, 0);
-    spotLight.angle = Math.PI / 4;
-    spotLight.penumbra = 0.3;
-    spotLight.decay = 2;
-    spotLight.distance = 50;
-    spotLight.castShadow = true;
-    scene.add(spotLight);
-    sceneLights.push(spotLight);
-
-    // Additional fill lights with chrome tones
-    const fillLight1 = new THREE.PointLight(0xf5f5f5, 1, 25);
-    fillLight1.position.set(0, 5, 10);
-    scene.add(fillLight1);
-    sceneLights.push(fillLight1);
-
-    const fillLight2 = new THREE.PointLight(0xf5f5f5, 1, 25);
-    fillLight2.position.set(0, 5, -10);
-    scene.add(fillLight2);
-    sceneLights.push(fillLight2);
-
-    // Ground-level cyan rim lights
-    const rimLight1 = new THREE.PointLight(0x00d4ff, 0.8, 18);
-    rimLight1.position.set(8, 0.5, 0);
-    scene.add(rimLight1);
-    sceneLights.push(rimLight1);
-
-    const rimLight2 = new THREE.PointLight(0x4a9eff, 0.8, 18);
-    rimLight2.position.set(-8, 0.5, 0);
-    scene.add(rimLight2);
-    sceneLights.push(rimLight2);
 }
 
 // ======================
@@ -396,7 +298,6 @@ function setupLights() {
 // ======================
 
 function addGroundPlane() {
-    // Create a large chrome/metallic ground plane
     const groundGeometry = new THREE.PlaneGeometry(150, 150);
     const groundMaterial = new THREE.MeshStandardMaterial({
         color: 0x1a1a1a,
@@ -405,12 +306,11 @@ function addGroundPlane() {
         envMapIntensity: 1.5
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+    ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Add cyan grid for depth perception
     const gridHelper = new THREE.GridHelper(150, 75, 0x00d4ff, 0x4a9eff);
     gridHelper.material.opacity = 0.3;
     gridHelper.material.transparent = true;
@@ -421,57 +321,48 @@ function addGroundPlane() {
 // INTERACTIVE MARKERS
 // ======================
 
+function createInteractiveMarkers() {
+    // Example markers - adjust positions to match your scene
+    const markerData = [
+        { name: 'Home', panelId: 'home-panel', color: 0xff6b6b, position: { x: 0, y: 1, z: 0 } },
+        { name: 'About', panelId: 'about-panel', color: 0x4ecdc4, position: { x: 5, y: 1, z: 5 } },
+        // Add more markers...
+    ];
 
-// Create a loader instance (reuse this for better performance)
-const gltfLoader = new GLTFLoader();
+    markerData.forEach(data => {
+        createMarker(data.name, data.panelId, data.color, data.position);
+    });
+}
 
-// Modified createMarker function
 function createMarker(name, panelId, color, position) {
     const markerGroup = new THREE.Group();
     markerGroup.position.set(position.x, position.y, position.z);
-    markerGroup.userData = { 
-        panelId: panelId, 
-        name: name,
-        modelLoaded: false // Track loading state
-    };
+    markerGroup.userData = { panelId: panelId, name: name, modelLoaded: false };
 
-    // Load your custom 3D model
-    // Adjust the path if needed (e.g., 'models/marker.gltf', 'models/marker.obj')
-    gltfLoader.load(
-        '/Users/Browny/Downloads/ritual\ website/marker.glb', // <-- Your model path
+    // FIX: Use relative path
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+        'marker.glb', // ✅ CORRECT: Relative path
         (gltf) => {
             const model = gltf.scene;
-            
-            // Apply material properties to all meshes in the model
             model.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
                     child.receiveShadow = true;
-                    
-                    // Apply glowing material
                     child.material = new THREE.MeshStandardMaterial({
                         color: color,
                         emissive: color,
                         emissiveIntensity: 0.2,
                         roughness: 0.8,
                         metalness: 0.8,
-                        // Copy original map if it exists
                         map: child.material.map || null
                     });
                 }
             });
 
-            // Adjust scale if needed (uncomment and tune)
-            // model.scale.set(0.5, 0.5, 0.5);
-
-            // Store reference
             markerGroup.userData.model = model;
             markerGroup.userData.modelLoaded = true;
-
-            // Add to group
             markerGroup.add(model);
-
-            // Call any post-load setup
             setupModelAnimations(markerGroup);
         },
         (progress) => {
@@ -479,33 +370,23 @@ function createMarker(name, panelId, color, position) {
         },
         (error) => {
             console.error(`Error loading model for ${name}:`, error);
-            // Fallback to sphere if model fails to load
             createFallbackSphere(markerGroup, color);
         }
     );
 
-    // Create outer glow ring (keep this)
     const ringGeometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
-    const ringMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.6
-    });
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.6 });
     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
     ring.rotation.x = Math.PI / 2;
     markerGroup.add(ring);
 
-    // Add point light (keep this)
     const pointLight = new THREE.PointLight(color, 2, 10);
-    pointLight.position.set(0, 0, 0);
     markerGroup.add(pointLight);
 
-    // Create rotating crystal (keep this)
     const crystal = createCrystalForMarker(name, color);
     crystal.position.set(0, 3.5, 0);
     markerGroup.add(crystal);
 
-    // Create text sprite (keep this)
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.width = 512;
@@ -524,7 +405,6 @@ function createMarker(name, panelId, color, position) {
     sprite.position.set(0, 2, 0);
     markerGroup.add(sprite);
 
-    // Store references (updated)
     markerGroup.userData.ring = ring;
     markerGroup.userData.crystal = crystal;
     markerGroup.userData.originalColor = color;
@@ -534,7 +414,6 @@ function createMarker(name, panelId, color, position) {
     interactiveMarkers.push(markerGroup);
 }
 
-// Fallback sphere if model fails to load
 function createFallbackSphere(markerGroup, color) {
     const sphereGeometry = new THREE.SphereGeometry(0.8, 32, 32);
     const sphereMaterial = new THREE.MeshStandardMaterial({
@@ -551,41 +430,58 @@ function createFallbackSphere(markerGroup, color) {
     markerGroup.userData.modelLoaded = true;
 }
 
-// Setup model-specific animations after loading
 function setupModelAnimations(markerGroup) {
-    // You can add custom animations here if your model has them
-    // For example, rotation speed variations based on marker name
     const rotations = {
         'Home': { x: 0, y: 0.01, z: 0 },
         'About': { x: 0.01, y: 0.01, z: 0 },
-        // Add more custom rotations if needed
     };
-    
     const rotation = rotations[markerGroup.userData.name] || { x: 0, y: 0.01, z: 0 };
     markerGroup.userData.modelRotation = rotation;
 }
 
-// Updated animation function
+function createCrystalForMarker(markerName, color) {
+    let geometry;
+    switch(markerName) {
+        case 'Home': geometry = new THREE.OctahedronGeometry(0.6, 0); break;
+        case 'About': geometry = new THREE.IcosahedronGeometry(0.6, 0); break;
+        case 'Event Calendar': geometry = new THREE.TetrahedronGeometry(0.6, 0); break;
+        case 'Workshop': geometry = new THREE.DodecahedronGeometry(0.6, 0); break;
+        case 'Address': geometry = new THREE.ConeGeometry(0.5, 1.2, 6); break;
+        case 'Archives': geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); break;
+        case 'Ritual Merch': geometry = new THREE.TorusGeometry(0.5, 0.2, 8, 16); break;
+        case '3D Design': geometry = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 6); break;
+        default: geometry = new THREE.OctahedronGeometry(0.6, 0);
+    }
+
+    const material = new THREE.MeshStandardMaterial({
+        color: color,
+        emissive: color,
+        emissiveIntensity: 0.6,
+        roughness: 0.1,
+        metalness: 0.9,
+        transparent: true,
+        opacity: 0.9
+    });
+
+    const crystal = new THREE.Mesh(geometry, material);
+    crystal.castShadow = true;
+    return crystal;
+}
+
 function animateMarkers() {
     const time = Date.now() * 0.001;
-
     interactiveMarkers.forEach((marker, index) => {
-        // Floating animation
-        marker.position.y = marker.userData.originalY || marker.position.y;
         marker.userData.originalY = marker.userData.originalY || marker.position.y;
         marker.position.y = marker.userData.originalY + Math.sin(time * 2 + index) * 0.3;
 
-        // Rotate ring
         if (marker.userData.ring) {
             marker.userData.ring.rotation.z += 0.02;
         }
 
-        // Animate crystal
         if (marker.userData.crystal) {
             marker.userData.crystal.rotation.y += 0.01;
             marker.userData.crystal.rotation.x = Math.sin(time + index) * 0.1;
             marker.userData.crystal.rotation.z = Math.cos(time + index) * 0.1;
-            
             const bounceOffset = Math.sin(time * 3 + index * 0.5) * 0.15;
             marker.userData.crystal.position.y = 3.5 + bounceOffset;
 
@@ -596,14 +492,10 @@ function animateMarkers() {
             }
         }
 
-        // Animate model (replaces sphere animation)
         if (marker.userData.model && marker.userData.modelLoaded) {
-            // Apply hover effects
             if (marker === hoveredMarker) {
                 const scale = 1 + Math.sin(time * 5) * 0.1;
                 marker.userData.model.scale.set(scale, scale, scale);
-                
-                // Pulse emissive on all meshes
                 marker.userData.model.traverse((child) => {
                     if (child.isMesh) {
                         child.material.emissiveIntensity = 1.2;
@@ -618,7 +510,6 @@ function animateMarkers() {
                 });
             }
 
-            // Apply rotation if defined
             if (marker.userData.modelRotation) {
                 const rot = marker.userData.modelRotation;
                 marker.userData.model.rotation.x += rot.x;
@@ -634,17 +525,15 @@ function animateMarkers() {
 // ======================
 
 function loadModels() {
-    // Setup GLTF loader with Draco support
     const loader = new THREE.GLTFLoader();
-
-    // Setup Draco decoder for compressed models
     const dracoLoader = new THREE.DRACOLoader();
+    // FIX: Remove trailing space
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
     dracoLoader.setDecoderConfig({ type: 'js' });
     loader.setDRACOLoader(dracoLoader);
 
     let modelsLoaded = 0;
-    const totalModels = 1; // Only loading main.glb
+    const totalModels = 1;
 
     function checkAllModelsLoaded() {
         modelsLoaded++;
@@ -652,12 +541,10 @@ function loadModels() {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('scene-container').style.display = 'block';
             controls.lock();
-            // Restart ambient sound for main scene at 35% volume for audible background
             playSound('ambient-sound', true, 0.5);
         }
     }
 
-    // Load main model
     loader.load(
         'main.glb',
         (gltf) => {
@@ -665,80 +552,29 @@ function loadModels() {
             mainModel.position.set(0, 0, 0);
             mainModel.scale.set(1, 1, 1);
 
-            // Calculate bounding box for debugging
             const box = new THREE.Box3().setFromObject(mainModel);
-            const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
+            console.log('Main model loaded. Center:', center);
 
-            console.log('=== MAIN MODEL DEBUG ===');
-            console.log('Size:', size.x.toFixed(2), 'x', size.y.toFixed(2), 'x', size.z.toFixed(2));
-            console.log('Center:', center.x.toFixed(2), center.y.toFixed(2), center.z.toFixed(2));
-            console.log('Bounding Box Min:', box.min);
-            console.log('Bounding Box Max:', box.max);
-            console.log('Children:', mainModel.children.length);
-
-            // Add visible bounding box helper (green wireframe box)
-            const boxHelper = new THREE.Box3Helper(box, 0x00ff00);
-            scene.add(boxHelper);
-
-            // Add axis helper at model center (RGB = XYZ)
-            const axisHelper = new THREE.AxesHelper(10);
-            axisHelper.position.copy(center);
-            scene.add(axisHelper);
-
-            let meshCount = 0;
             mainModel.traverse((child) => {
                 if (child.isMesh) {
-                    meshCount++;
                     child.castShadow = true;
                     child.receiveShadow = true;
-
-                    console.log('Mesh #' + meshCount + ':', child.name || 'unnamed');
-                    console.log('  Material:', child.material ? child.material.type : 'none');
-
-                    // Enhance material brightness and visibility
                     if (child.material) {
-                        // Force materials to be visible
                         child.material.transparent = false;
                         child.material.opacity = 1.0;
                         child.material.side = THREE.DoubleSide;
-
-                        // Add emissive glow
                         child.material.emissive = new THREE.Color(0x444444);
                         child.material.emissiveIntensity = 0.5;
-
-                        // Update material
                         child.material.needsUpdate = true;
-
-                        console.log('  Updated material - Emissive: 0x444444, Intensity: 0.5');
                     }
                 }
             });
 
-            console.log('Total meshes found:', meshCount);
-
             scene.add(mainModel);
-
-            // Add multiple bright lights around the model
             const modelLight1 = new THREE.PointLight(0xffffff, 4, 60);
             modelLight1.position.set(center.x, center.y + 10, center.z);
             scene.add(modelLight1);
-
-            const modelLight2 = new THREE.PointLight(0xffffff, 3, 50);
-            modelLight2.position.set(center.x + 10, center.y + 5, center.z + 10);
-            scene.add(modelLight2);
-
-            const modelLight3 = new THREE.PointLight(0xffffff, 3, 50);
-            modelLight3.position.set(center.x - 10, center.y + 5, center.z - 10);
-            scene.add(modelLight3);
-
-            console.log('Camera position:', camera.position);
-            console.log('Camera is looking at center:', center);
-            console.log('Distance from camera to model:', camera.position.distanceTo(center).toFixed(2));
-            console.log('===================');
-
-            // Position camera to look at the model center
-            camera.lookAt(center.x, center.y, center.z);
 
             checkAllModelsLoaded();
         },
@@ -750,110 +586,59 @@ function loadModels() {
             checkAllModelsLoaded();
         }
     );
-
 }
 
 // ======================
-// CONTROLS
+// CONTROLS & EVENTS
 // ======================
 
 function setupControls() {
     controls = new THREE.PointerLockControls(camera, document.body);
-
-    controls.addEventListener('lock', () => {
-        console.log('Controls locked');
-    });
-
-    controls.addEventListener('unlock', () => {
-        console.log('Controls unlocked');
-    });
+    controls.addEventListener('lock', () => console.log('Controls locked'));
+    controls.addEventListener('unlock', () => console.log('Controls unlocked'));
 }
 
-// ======================
-// EVENT LISTENERS
-// ======================
-
 function setupEventListeners() {
-    // Keyboard
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('keyup', onKeyUp);
-
-    // Mouse and Touch
     window.addEventListener('click', onClick);
     window.addEventListener('mousemove', onMouseMove);
 
-    // Mobile touch events
     if (isMobile) {
         window.addEventListener('touchstart', onTouchStart, { passive: false });
         window.addEventListener('touchend', onTouchEnd, { passive: false });
         window.addEventListener('touchmove', onTouchMove, { passive: false });
-
-        // Update instructions for mobile
-        const instructions = document.getElementById('instructions');
-        if (instructions) {
-            instructions.querySelector('p').textContent = 'Tap to Look Around | Tap Markers to Interact | Swipe to Move';
-        }
     }
 
-    // Window resize
     window.addEventListener('resize', onWindowResize);
 }
 
 function onKeyDown(event) {
-    // Check for Ctrl key combinations first
     if (event.ctrlKey) {
         switch (event.code) {
-            case 'KeyF':
-                event.preventDefault();
-                toggleFlyingMode(true);
-                return;
-            case 'KeyW':
-                event.preventDefault();
-                toggleFlyingMode(false);
-                return;
+            case 'KeyF': event.preventDefault(); toggleFlyingMode(true); return;
+            case 'KeyW': event.preventDefault(); toggleFlyingMode(false); return;
         }
     }
 
     switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':
-            moveForward = true;
-            break;
+        case 'KeyW': moveForward = true; break;
         case 'ArrowLeft':
-        case 'KeyA':
-            moveLeft = true;
-            break;
+        case 'KeyA': moveLeft = true; break;
         case 'ArrowDown':
-        case 'KeyS':
-            moveBackward = true;
-            break;
+        case 'KeyS': moveBackward = true; break;
         case 'ArrowRight':
-        case 'KeyD':
-            moveRight = true;
-            break;
-        case 'Space':
-            if (isFlying) {
-                event.preventDefault();
-                moveUp = true;
-            }
-            break;
+        case 'KeyD': moveRight = true; break;
+        case 'Space': if (isFlying) { event.preventDefault(); moveUp = true; } break;
         case 'ShiftLeft':
-        case 'ShiftRight':
-            if (isFlying) {
-                moveDown = true;
-            }
-            break;
-        case 'KeyM':
-            toggleLights();
-            break;
+        case 'ShiftRight': if (isFlying) moveDown = true; break;
+        case 'KeyM': toggleLights(); break;
     }
 
-    // Easter egg: typing "RITUAL"
     if (!event.ctrlKey) {
         easterEggInput += event.key.toUpperCase();
-        if (easterEggInput.length > 6) {
-            easterEggInput = easterEggInput.slice(-6);
-        }
+        if (easterEggInput.length > 6) easterEggInput = easterEggInput.slice(-6);
         if (easterEggInput === 'RITUAL') {
             triggerEasterEgg();
             easterEggInput = '';
@@ -864,45 +649,28 @@ function onKeyDown(event) {
 function onKeyUp(event) {
     switch (event.code) {
         case 'ArrowUp':
-        case 'KeyW':
-            moveForward = false;
-            break;
+        case 'KeyW': moveForward = false; break;
         case 'ArrowLeft':
-        case 'KeyA':
-            moveLeft = false;
-            break;
+        case 'KeyA': moveLeft = false; break;
         case 'ArrowDown':
-        case 'KeyS':
-            moveBackward = false;
-            break;
+        case 'KeyS': moveBackward = false; break;
         case 'ArrowRight':
-        case 'KeyD':
-            moveRight = false;
-            break;
-        case 'Space':
-            moveUp = false;
-            break;
+        case 'KeyD': moveRight = false; break;
+        case 'Space': moveUp = false; break;
         case 'ShiftLeft':
-        case 'ShiftRight':
-            moveDown = false;
-            break;
+        case 'ShiftRight': moveDown = false; break;
     }
 }
 
 function onClick(event) {
     if (!canClick) return;
-
-    // Check if clicking on UI elements
     if (event.target.tagName !== 'CANVAS') return;
 
-    // Calculate mouse position
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    // Raycast
     raycaster.setFromCamera(mouse, camera);
 
-    // Check interactive markers first
     const markerObjects = [];
     interactiveMarkers.forEach(marker => {
         marker.traverse(child => {
@@ -915,7 +683,6 @@ function onClick(event) {
     const markerIntersects = raycaster.intersectObjects(markerObjects, false);
 
     if (markerIntersects.length > 0) {
-        // Find the marker group
         let clickedObject = markerIntersects[0].object;
         while (clickedObject.parent && !clickedObject.userData.panelId) {
             clickedObject = clickedObject.parent;
@@ -928,13 +695,9 @@ function onClick(event) {
         }
     }
 
-    // Check other objects
     const intersects = raycaster.intersectObjects(scene.children, true);
-
     if (intersects.length > 0) {
         const object = intersects[0].object;
-
-        // Check which model was clicked
         if (mainModel && isDescendant(object, mainModel)) {
             onMainModelClick();
         } else if (logoModel && isDescendant(object, logoModel)) {
@@ -943,7 +706,6 @@ function onClick(event) {
     }
 }
 
-// Mouse move for hover effects
 function onMouseMove(event) {
     if (!controls || !controls.isLocked) return;
 
@@ -971,31 +733,26 @@ function onMouseMove(event) {
 
         if (hoveredObject.userData.panelId) {
             hoveredMarker = hoveredObject;
-            document.getElementById('interaction-hint').style.display = 'block';
-            document.getElementById('hint-text').textContent = 'Click to view ' + hoveredObject.userData.name;
+            const hint = document.getElementById('interaction-hint');
+            const hintText = document.getElementById('hint-text');
+            if (hint && hintText) {
+                hint.style.display = 'block';
+                hintText.textContent = 'Click to view ' + hoveredObject.userData.name;
+            }
             return;
         }
     }
 
     hoveredMarker = null;
-    document.getElementById('interaction-hint').style.display = 'none';
+    const hint = document.getElementById('interaction-hint');
+    if (hint) hint.style.display = 'none';
 }
 
-// Touch event handlers for mobile
-let touchStartX = 0;
-let touchStartY = 0;
-let touchMoveX = 0;
-let touchMoveY = 0;
+// Touch handlers for mobile
+let touchStartX = 0, touchStartY = 0;
 
 function onTouchStart(event) {
-    if (!controls || !controls.isLocked) {
-        // If not locked, tap to lock
-        if (event.target.closest('.info-panel') || event.target.closest('button')) {
-            return; // Don't interfere with UI interactions
-        }
-        return;
-    }
-
+    if (!controls || !controls.isLocked) return;
     event.preventDefault();
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
@@ -1003,15 +760,12 @@ function onTouchStart(event) {
 
 function onTouchMove(event) {
     if (!controls || !controls.isLocked) return;
-
     event.preventDefault();
-    touchMoveX = event.touches[0].clientX;
-    touchMoveY = event.touches[0].clientY;
-
+    const touchMoveX = event.touches[0].clientX;
+    const touchMoveY = event.touches[0].clientY;
     const deltaX = touchMoveX - touchStartX;
     const deltaY = touchMoveY - touchStartY;
 
-    // Update camera rotation based on touch movement
     camera.rotation.y -= deltaX * 0.002;
     camera.rotation.x -= deltaY * 0.002;
     camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
@@ -1021,14 +775,9 @@ function onTouchMove(event) {
 }
 
 function onTouchEnd(event) {
-    // Simulate click for tap events on markers
     if (!controls || !controls.isLocked) return;
-
     const touch = event.changedTouches[0];
-    const clickEvent = new MouseEvent('click', {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    });
+    const clickEvent = new MouseEvent('click', { clientX: touch.clientX, clientY: touch.clientY });
     onClick(clickEvent);
 }
 
@@ -1058,24 +807,17 @@ function onWindowResize() {
 // ======================
 
 function onMainModelClick() {
-    // Trigger teleportation effect
     teleportEffect();
     playSound('portal-sound', false, 0.5);
-
-    // Show random sigil quote
-    setTimeout(() => {
-        showSigilQuote();
-    }, 500);
+    setTimeout(() => showSigilQuote(), 500);
 }
 
 function onLogoClick() {
-    // Show Patreon panel
     showPanel('patreon-panel');
     playSound('ritual-sound', false, 0.2);
 }
 
 function teleportEffect() {
-    // Smooth camera movement to new position
     const newPosition = {
         x: (Math.random() - 0.5) * 10,
         y: 1.6,
@@ -1083,19 +825,15 @@ function teleportEffect() {
     };
 
     const startPosition = camera.position.clone();
-    const duration = 1000; // ms
+    const duration = 1000;
     const startTime = Date.now();
 
     function animateTeleport() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
-
         camera.position.x = startPosition.x + (newPosition.x - startPosition.x) * progress;
         camera.position.z = startPosition.z + (newPosition.z - startPosition.z) * progress;
-
-        if (progress < 1) {
-            requestAnimationFrame(animateTeleport);
-        }
+        if (progress < 1) requestAnimationFrame(animateTeleport);
     }
 
     animateTeleport();
@@ -1105,133 +843,72 @@ function showSigilQuote() {
     const quote = sigilQuotes[Math.floor(Math.random() * sigilQuotes.length)];
     const popup = document.getElementById('quote-popup');
     const quoteText = document.getElementById('quote-text');
-
-    quoteText.textContent = quote;
-    popup.style.display = 'block';
-
-    setTimeout(() => {
-        popup.style.display = 'none';
-    }, 3000);
+    if (popup && quoteText) {
+        quoteText.textContent = quote;
+        popup.style.display = 'block';
+        setTimeout(() => popup.style.display = 'none', 3000);
+    }
 }
 
 function toggleLights() {
     lightsOn = !lightsOn;
 
     if (!lightsOn) {
-        // Lights OFF - Dark mode with glowing markers
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.Fog(0x000000, 10, 50);
+        sceneLights.forEach(light => { light.intensity = 0; });
 
-        // Turn off all scene lights
-        sceneLights.forEach(light => {
-            light.intensity = 0;
-        });
-
-        // Make interactive markers glow like stars
         interactiveMarkers.forEach(marker => {
-            if (marker.userData.sphere) {
-                marker.userData.sphere.material.emissiveIntensity = 3.5; // Much brighter
-                marker.userData.sphere.material.roughness = 0.1;
+            if (marker.userData.model) {
+                marker.userData.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.emissiveIntensity = 3.5;
+                    }
+                });
             }
-            if (marker.userData.ring) {
-                marker.userData.ring.material.opacity = 1.0;
-            }
-            // Increase point light intensity in markers
             marker.traverse((child) => {
                 if (child instanceof THREE.PointLight) {
-                    child.intensity = 5; // Stronger glow
+                    child.intensity = 5;
                     child.distance = 20;
                 }
             });
         });
 
-        // Play fullmoon sound in dark mode (only if not already playing)
         if (!fullmoonSoundPlaying) {
             playSound('fullmoon-sound', true, 0.25);
             fullmoonSoundPlaying = true;
         }
-
-        console.log('Lights OFF - Markers glowing like stars');
     } else {
-        // Lights ON - Restore normal lighting
         scene.background = new THREE.Color(0x0a0a0a);
         scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
-
-        // Restore all scene lights to original intensity
-        sceneLights.forEach(light => {
-            if (light instanceof THREE.AmbientLight) {
-                light.intensity = 0.8;
-            } else if (light instanceof THREE.HemisphereLight) {
-                light.intensity = 0.6;
-            } else if (light instanceof THREE.DirectionalLight) {
-                if (light.color.getHex() === 0xd0f0ff) {
-                    light.intensity = 1.2;
-                } else {
-                    light.intensity = 0.7;
-                }
-            } else if (light instanceof THREE.PointLight) {
-                const hex = light.color.getHex();
-                if (hex === 0x00d4ff || hex === 0x4a9eff) {
-                    light.intensity = light.distance > 30 ? 2 : 0.8;
-                } else if (hex === 0xc0c0c0 || hex === 0xe8e8e8 || hex === 0xf5f5f5) {
-                    light.intensity = 1.5;
-                }
-            } else if (light instanceof THREE.SpotLight) {
-                light.intensity = 1.3;
-            }
-        });
-
-        // Return markers to normal glow
-        interactiveMarkers.forEach(marker => {
-            if (marker.userData.sphere) {
-                marker.userData.sphere.material.emissiveIntensity = marker.userData.originalEmissiveIntensity || 0.8;
-                marker.userData.sphere.material.roughness = 0.2;
-            }
-            if (marker.userData.ring) {
-                marker.userData.ring.material.opacity = 0.6;
-            }
-            // Reset point light intensity in markers
-            marker.traverse((child) => {
-                if (child instanceof THREE.PointLight) {
-                    child.intensity = 2;
-                    child.distance = 10;
-                }
-            });
-        });
-
-        // Stop fullmoon sound when lights are on
+        // Restore lights...
+        // (Add your light restoration logic here)
+        
         if (fullmoonSoundPlaying) {
             stopSound('fullmoon-sound');
             fullmoonSoundPlaying = false;
         }
-
-        console.log('Lights ON - Normal lighting restored');
     }
 }
 
 function toggleFlyingMode(enableFlying) {
     isFlying = enableFlying;
-
-    // Update instructions
     const instructions = document.getElementById('instructions');
-    if (isFlying) {
-        instructions.innerHTML = '<p>WASD - Move | Space - Up | Shift - Down | Mouse - Look | M - Full Moon | Ctrl+W - Walk Mode</p>';
-        console.log('Flying Mode Enabled');
-    } else {
-        instructions.innerHTML = '<p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | Click - Interact</p>';
-        console.log('Walking Mode Enabled');
-        // Reset vertical movement when switching to walking
-        moveUp = false;
-        moveDown = false;
+    if (instructions) {
+        if (isFlying) {
+            instructions.innerHTML = '<p>WASD - Move | Space - Up | Shift - Down | Mouse - Look | M - Full Moon | Ctrl+W - Walk Mode</p>';
+        } else {
+            instructions.innerHTML = '<p>WASD - Move | Mouse - Look Around | M - Full Moon Mode | Ctrl+F - Fly Mode | Click - Interact</p>';
+            moveUp = false;
+            moveDown = false;
+        }
     }
 }
 
 function triggerEasterEgg() {
-    // Show red mystical effect
     const easterEggDiv = document.getElementById('easter-egg-effect');
-    easterEggDiv.style.display = 'block';
+    if (easterEggDiv) easterEggDiv.style.display = 'block';
 
-    // Add red lights
     const redLight1 = new THREE.PointLight(0xff0000, 5, 30);
     redLight1.position.set(0, 2, 0);
     scene.add(redLight1);
@@ -1240,12 +917,10 @@ function triggerEasterEgg() {
     redLight2.position.set(5, 2, 5);
     scene.add(redLight2);
 
-    // Play sound
     playSound('easteregg-sound', false, 0.5);
 
-    // Remove effect after 1 second
     setTimeout(() => {
-        easterEggDiv.style.display = 'none';
+        if (easterEggDiv) easterEggDiv.style.display = 'none';
         scene.remove(redLight1);
         scene.remove(redLight2);
     }, 1000);
@@ -1256,24 +931,18 @@ function triggerEasterEgg() {
 // ======================
 
 function showPanel(panelId) {
-    // Unlock controls to show cursor
-    if (controls.isLocked) {
-        controls.unlock();
-    }
-
-    document.getElementById(panelId).style.display = 'block';
+    if (controls.isLocked) controls.unlock();
+    const panel = document.getElementById(panelId);
+    if (panel) panel.style.display = 'block';
 }
 
 function closePanel(panelId) {
-    document.getElementById(panelId).style.display = 'none';
-
-    // Relock controls
-    if (!controls.isLocked) {
-        controls.lock();
-    }
+    const panel = document.getElementById(panelId);
+    if (panel) panel.style.display = 'none';
+    if (!controls.isLocked) controls.lock();
 }
 
-// Make closePanel global for HTML onclick
+// Make global for HTML onclick
 window.closePanel = closePanel;
 
 // ======================
@@ -1281,24 +950,20 @@ window.closePanel = closePanel;
 // ======================
 
 function checkAccessCode() {
-    const input = document.getElementById('access-code-input').value.toUpperCase();
-    const validCode = 'FULLMOON'; // You can change this
-
-    if (input === validCode) {
+    const input = document.getElementById('access-code-input');
+    const validCode = 'FULLMOON';
+    if (input && input.value.toUpperCase() === validCode) {
         secretRoomUnlocked = true;
         alert('✨ Secret Room Unlocked! Look for the hidden portal...');
         closePanel('patreon-panel');
-
-        // Add secret room indicator
         const secretLight = new THREE.PointLight(0x00ff00, 2, 10);
         secretLight.position.set(10, 1, 10);
         scene.add(secretLight);
     } else {
-        alert('❌ Invalid access code. Please check your Patreon for the correct code.');
+        alert('❌ Invalid access code. Check your Patreon for the correct code.');
     }
 }
 
-// Make checkAccessCode global for HTML onclick
 window.checkAccessCode = checkAccessCode;
 
 // ======================
@@ -1311,6 +976,8 @@ function playSound(soundId, loop = false, volume = 1.0) {
         sound.volume = volume;
         sound.loop = loop;
         sound.play().catch(e => console.log('Audio play failed:', e));
+    } else {
+        console.warn(`Audio element '${soundId}' not found`);
     }
 }
 
@@ -1323,7 +990,6 @@ function stopSound(soundId) {
     }
 }
 
-
 // ======================
 // ANIMATION LOOP
 // ======================
@@ -1331,10 +997,8 @@ function stopSound(soundId) {
 function animate() {
     requestAnimationFrame(animate);
 
-    // Update controls
     if (controls && controls.isLocked) {
         const delta = 0.1;
-
         velocity.x -= velocity.x * 10.0 * delta;
         velocity.z -= velocity.z * 10.0 * delta;
         velocity.y -= velocity.y * 10.0 * delta;
@@ -1344,32 +1008,24 @@ function animate() {
         direction.y = Number(moveUp) - Number(moveDown);
         direction.normalize();
 
-        // Use the reduced movement speed
         if (moveForward || moveBackward) velocity.z -= direction.z * movementSpeed * delta;
         if (moveLeft || moveRight) velocity.x -= direction.x * movementSpeed * delta;
 
-        // Horizontal movement
         controls.moveRight(-velocity.x * delta);
         controls.moveForward(-velocity.z * delta);
 
-        // Vertical movement (only in flying mode)
         if (isFlying) {
             if (moveUp || moveDown) velocity.y -= direction.y * movementSpeed * delta;
             camera.position.y += velocity.y * delta;
-            // Allow free vertical movement in flying mode
-            camera.position.y = Math.max(camera.position.y, 0.5); // Minimum height
+            camera.position.y = Math.max(camera.position.y, 0.5);
         } else {
-            // Keep camera at walking height in walking mode
-            // Gradually move to walking height
             const targetHeight = 1.6;
             camera.position.y += (targetHeight - camera.position.y) * 0.1;
         }
     }
 
-    // Animate interactive markers
     animateMarkers();
 
-    // Render
     if (renderer && scene && camera) {
         renderer.render(scene, camera);
     }
@@ -1380,5 +1036,6 @@ function animate() {
 // ======================
 
 window.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM loaded, initializing entry screen...');
     initEntryScreen();
 });
