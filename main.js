@@ -98,6 +98,11 @@ function initEntryScreen() {
         loader.load(
             'rituallogo.glb',
             (gltf) => {
+                if (!entryScene) {
+                    console.warn('Entry scene cleaned up before logo loaded');
+                    return;
+                }
+                
                 entryLogoModel = gltf.scene;
                 entryLogoModel.position.set(0, 0, 0);
                 entryLogoModel.scale.set(1.5, 1.5, 1.5);
@@ -322,15 +327,16 @@ function addGroundPlane() {
 // ======================
 
 function createInteractiveMarkers() {
+    // ✅ FIX: Changed 'panel' to 'panelId'
     const markerData = [
-        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 3, z: 8 } },
-        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 3, z: 8 } },
-        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 3, z: 0 } },
-        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 3, z: -8 } },
-        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 3, z: -8 } },
-        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 3, z: 0 } },
-        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 3, z: 12 } },
-        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 3, z: -12 } }
+        { name: 'Home', panelId: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 3, z: 8 } },
+        { name: 'About', panelId: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 3, z: 8 } },
+        { name: 'Event Calendar', panelId: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 3, z: 0 } },
+        { name: 'Workshop', panelId: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 3, z: -8 } },
+        { name: 'Address', panelId: 'address-panel', color: 0xff00ff, position: { x: -8, y: 3, z: -8 } },
+        { name: 'Archives', panelId: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 3, z: 0 } },
+        { name: 'Ritual Merch', panelId: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 3, z: 12 } },
+        { name: '3D Design', panelId: 'design-panel', color: 0xff0088, position: { x: 0, y: 3, z: -12 } }
     ];
 
     markerData.forEach(data => {
@@ -343,10 +349,9 @@ function createMarker(name, panelId, color, position) {
     markerGroup.position.set(position.x, position.y, position.z);
     markerGroup.userData = { panelId: panelId, name: name, modelLoaded: false };
 
-    // FIX: Use relative path
     const loader = new THREE.GLTFLoader();
     loader.load(
-        'marker.glb', // ✅ CORRECT: Relative path
+        'marker.glb', // ✅ This must exist in your repo root
         (gltf) => {
             const model = gltf.scene;
             model.traverse((child) => {
@@ -537,20 +542,26 @@ function animateMarkers() {
 function loadModels() {
     const loader = new THREE.GLTFLoader();
     const dracoLoader = new THREE.DRACOLoader();
-    // FIX: Remove trailing space
+    
+    // ✅ FIX: Removed trailing space
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
     dracoLoader.setDecoderConfig({ type: 'js' });
     loader.setDRACOLoader(dracoLoader);
 
     let modelsLoaded = 0;
-    const totalModels = 4;
+    const totalModels = 1; // ✅ FIX: Changed from 4 to 1
 
     function checkAllModelsLoaded() {
         modelsLoaded++;
         if (modelsLoaded === totalModels) {
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('scene-container').style.display = 'block';
-            controls.lock();
+            
+            // ✅ FIX: Defer pointer lock to avoid error
+            setTimeout(() => {
+                if (controls) controls.lock();
+            }, 100);
+            
             playSound('ambient-sound', true, 0.5);
         }
     }
@@ -891,8 +902,7 @@ function toggleLights() {
     } else {
         scene.background = new THREE.Color(0x0a0a0a);
         scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
-        // Restore lights...
-        // (Add your light restoration logic here)
+        
         // Restore all scene lights to original intensity
         sceneLights.forEach(light => {
             if (light instanceof THREE.AmbientLight) {
