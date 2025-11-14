@@ -1,0 +1,7 @@
+include:
+  - "*.glb"
+  - "*.gltf"
+  - "*.mp3"
+  - "*.wav"
+  - "*.woff"
+  - "*.woff2"

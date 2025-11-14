@@ -1,0 +1,5 @@
+# Force binary treatment for 3D models and audio
+*.glb binary
+*.gltf binary
+*.mp3 binary
+*.wav binary
