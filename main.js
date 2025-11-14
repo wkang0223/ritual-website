@@ -421,30 +421,123 @@ function addGroundPlane() {
 // INTERACTIVE MARKERS
 // ======================
 
-function createInteractiveMarkers() {
-    const markerData = [
-        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 3, z: 8 } },
-        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 3, z: 8 } },
-        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 3, z: 0 } },
-        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 3, z: -8 } },
-        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 3, z: -8 } },
-        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 3, z: 0 } },
-        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 3, z: 12 } },
-        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 3, z: -12 } }
-    ];
+// First, import GLTFLoader at the top of your file
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-    markerData.forEach(data => {
-        createMarker(data.name, data.panel, data.color, data.position);
-    });
-}
+// Create a loader instance (reuse this for better performance)
+const gltfLoader = new GLTFLoader();
 
+// Modified createMarker function
 function createMarker(name, panelId, color, position) {
-    // Create marker group
     const markerGroup = new THREE.Group();
     markerGroup.position.set(position.x, position.y, position.z);
-    markerGroup.userData = { panelId: panelId, name: name };
+    markerGroup.userData = { 
+        panelId: panelId, 
+        name: name,
+        modelLoaded: false // Track loading state
+    };
 
-    // Create glowing sphere
+    // Load your custom 3D model
+    // Adjust the path if needed (e.g., 'models/marker.gltf', 'models/marker.obj')
+    gltfLoader.load(
+        '/Users/Browny/Downloads/ritual\ website/marker.glb', // <-- Your model path
+        (gltf) => {
+            const model = gltf.scene;
+            
+            // Apply material properties to all meshes in the model
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    
+                    // Apply glowing material
+                    child.material = new THREE.MeshStandardMaterial({
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 0.2,
+                        roughness: 0.8,
+                        metalness: 0.8,
+                        // Copy original map if it exists
+                        map: child.material.map || null
+                    });
+                }
+            });
+
+            // Adjust scale if needed (uncomment and tune)
+            // model.scale.set(0.5, 0.5, 0.5);
+
+            // Store reference
+            markerGroup.userData.model = model;
+            markerGroup.userData.modelLoaded = true;
+
+            // Add to group
+            markerGroup.add(model);
+
+            // Call any post-load setup
+            setupModelAnimations(markerGroup);
+        },
+        (progress) => {
+            console.log(`Loading ${name}: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+        },
+        (error) => {
+            console.error(`Error loading model for ${name}:`, error);
+            // Fallback to sphere if model fails to load
+            createFallbackSphere(markerGroup, color);
+        }
+    );
+
+    // Create outer glow ring (keep this)
+    const ringGeometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
+    const ringMaterial = new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.6
+    });
+    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+    ring.rotation.x = Math.PI / 2;
+    markerGroup.add(ring);
+
+    // Add point light (keep this)
+    const pointLight = new THREE.PointLight(color, 2, 10);
+    pointLight.position.set(0, 0, 0);
+    markerGroup.add(pointLight);
+
+    // Create rotating crystal (keep this)
+    const crystal = createCrystalForMarker(name, color);
+    crystal.position.set(0, 3.5, 0);
+    markerGroup.add(crystal);
+
+    // Create text sprite (keep this)
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 512;
+    canvas.height = 128;
+    context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.font = 'Bold 48px RX100, Arial';
+    context.fillStyle = '#ffffff';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(name, canvas.width / 2, canvas.height / 2);
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.scale.set(4, 1, 1);
+    sprite.position.set(0, 2, 0);
+    markerGroup.add(sprite);
+
+    // Store references (updated)
+    markerGroup.userData.ring = ring;
+    markerGroup.userData.crystal = crystal;
+    markerGroup.userData.originalColor = color;
+    markerGroup.userData.originalEmissiveIntensity = 0.8;
+
+    scene.add(markerGroup);
+    interactiveMarkers.push(markerGroup);
+}
+
+// Fallback sphere if model fails to load
+function createFallbackSphere(markerGroup, color) {
     const sphereGeometry = new THREE.SphereGeometry(0.8, 32, 32);
     const sphereMaterial = new THREE.MeshStandardMaterial({
         color: color,
@@ -456,120 +549,25 @@ function createMarker(name, panelId, color, position) {
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.castShadow = true;
     markerGroup.add(sphere);
-
-    // Create outer glow ring
-    const ringGeometry = new THREE.TorusGeometry(1.2, 0.1, 16, 100);
-    const ringMaterial = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.6
-    });
-    const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-    ring.rotation.x = Math.PI / 2;
-    markerGroup.add(ring);
-
-    // Add point light for glow effect
-    const pointLight = new THREE.PointLight(color, 2, 10);
-    pointLight.position.set(0, 0, 0);
-    markerGroup.add(pointLight);
-
-    // Create rotating crystal above marker - unique shape for each
-    const crystal = createCrystalForMarker(name, color);
-    crystal.position.set(0, 3.5, 0); // Above the marker
-    markerGroup.add(crystal);
-
-    // Create text sprite
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    canvas.width = 512;
-    canvas.height = 128;
-
-    context.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    context.font = 'Bold 48px RX100, Arial';
-    context.fillStyle = '#ffffff';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText(name, canvas.width / 2, canvas.height / 2);
-
-    const texture = new THREE.CanvasTexture(canvas);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-    const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(4, 1, 1);
-    sprite.position.set(0, 2, 0);
-    markerGroup.add(sprite);
-
-    // Store references
-    markerGroup.userData.sphere = sphere;
-    markerGroup.userData.ring = ring;
-    markerGroup.userData.crystal = crystal;
-    markerGroup.userData.originalColor = color;
-    markerGroup.userData.originalEmissiveIntensity = 0.8;
-
-    scene.add(markerGroup);
-    interactiveMarkers.push(markerGroup);
+    markerGroup.userData.model = sphere;
+    markerGroup.userData.modelLoaded = true;
 }
 
-// Create unique crystal shape for each marker
-function createCrystalForMarker(markerName, color) {
-    let geometry;
-
-    // Different crystal shape for each marker
-    switch(markerName) {
-        case 'Home':
-            // Octahedron (8-sided diamond)
-            geometry = new THREE.OctahedronGeometry(0.6, 0);
-            break;
-        case 'About':
-            // Icosahedron (20-sided)
-            geometry = new THREE.IcosahedronGeometry(0.6, 0);
-            break;
-        case 'Event Calendar':
-            // Tetrahedron (4-sided pyramid)
-            geometry = new THREE.TetrahedronGeometry(0.6, 0);
-            break;
-        case 'Workshop':
-            // Dodecahedron (12-sided)
-            geometry = new THREE.DodecahedronGeometry(0.6, 0);
-            break;
-        case 'Address':
-            // Cone (pointed crystal)
-            geometry = new THREE.ConeGeometry(0.5, 1.2, 6);
-            break;
-        case 'Archives':
-            // Box (cubic crystal)
-            geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-            break;
-        case 'Ritual Merch':
-            // Torus (ring crystal)
-            geometry = new THREE.TorusGeometry(0.5, 0.2, 8, 16);
-            break;
-        case '3D Design':
-            // Cylinder (pillar crystal)
-            geometry = new THREE.CylinderGeometry(0.4, 0.4, 1.2, 6);
-            break;
-        default:
-            geometry = new THREE.OctahedronGeometry(0.6, 0);
-    }
-
-    // Crystal material with emissive glow matching marker color
-    const material = new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: color,
-        emissiveIntensity: 0.6,
-        roughness: 0.1,
-        metalness: 0.9,
-        transparent: true,
-        opacity: 0.9
-    });
-
-    const crystal = new THREE.Mesh(geometry, material);
-    crystal.castShadow = true;
-
-    return crystal;
+// Setup model-specific animations after loading
+function setupModelAnimations(markerGroup) {
+    // You can add custom animations here if your model has them
+    // For example, rotation speed variations based on marker name
+    const rotations = {
+        'Home': { x: 0, y: 0.01, z: 0 },
+        'About': { x: 0.01, y: 0.01, z: 0 },
+        // Add more custom rotations if needed
+    };
+    
+    const rotation = rotations[markerGroup.userData.name] || { x: 0, y: 0.01, z: 0 };
+    markerGroup.userData.modelRotation = rotation;
 }
 
+// Updated animation function
 function animateMarkers() {
     const time = Date.now() * 0.001;
 
@@ -584,20 +582,15 @@ function animateMarkers() {
             marker.userData.ring.rotation.z += 0.02;
         }
 
-        // Animate crystal - rotation and bounce
+        // Animate crystal
         if (marker.userData.crystal) {
-            // Smooth Y-axis rotation
             marker.userData.crystal.rotation.y += 0.01;
-
-            // Slight X and Z rotation for dynamic effect
             marker.userData.crystal.rotation.x = Math.sin(time + index) * 0.1;
             marker.userData.crystal.rotation.z = Math.cos(time + index) * 0.1;
-
-            // Gentle bounce animation
+            
             const bounceOffset = Math.sin(time * 3 + index * 0.5) * 0.15;
             marker.userData.crystal.position.y = 3.5 + bounceOffset;
 
-            // Pulse glow on hover
             if (marker === hoveredMarker) {
                 marker.userData.crystal.material.emissiveIntensity = 0.8 + Math.sin(time * 5) * 0.2;
             } else {
@@ -605,14 +598,35 @@ function animateMarkers() {
             }
         }
 
-        // Pulse sphere on hover
-        if (marker === hoveredMarker && marker.userData.sphere) {
-            const scale = 1 + Math.sin(time * 5) * 0.1;
-            marker.userData.sphere.scale.set(scale, scale, scale);
-            marker.userData.sphere.material.emissiveIntensity = 1.2;
-        } else if (marker.userData.sphere) {
-            marker.userData.sphere.scale.set(1, 1, 1);
-            marker.userData.sphere.material.emissiveIntensity = marker.userData.originalEmissiveIntensity;
+        // Animate model (replaces sphere animation)
+        if (marker.userData.model && marker.userData.modelLoaded) {
+            // Apply hover effects
+            if (marker === hoveredMarker) {
+                const scale = 1 + Math.sin(time * 5) * 0.1;
+                marker.userData.model.scale.set(scale, scale, scale);
+                
+                // Pulse emissive on all meshes
+                marker.userData.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.emissiveIntensity = 1.2;
+                    }
+                });
+            } else {
+                marker.userData.model.scale.set(1, 1, 1);
+                marker.userData.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.emissiveIntensity = marker.userData.originalEmissiveIntensity;
+                    }
+                });
+            }
+
+            // Apply rotation if defined
+            if (marker.userData.modelRotation) {
+                const rot = marker.userData.modelRotation;
+                marker.userData.model.rotation.x += rot.x;
+                marker.userData.model.rotation.y += rot.y;
+                marker.userData.model.rotation.z += rot.z;
+            }
         }
     });
 }
