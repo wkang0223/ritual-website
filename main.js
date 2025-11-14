@@ -422,9 +422,6 @@ function addGroundPlane() {
 // ======================
 
 
-// Create a loader instance (reuse this for better performance)
-const gltfLoader = new GLTFLoader();
-
 // Modified createMarker function
 function createMarker(name, panelId, color, position) {
     const markerGroup = new THREE.Group();
