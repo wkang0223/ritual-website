@@ -322,11 +322,15 @@ function addGroundPlane() {
 // ======================
 
 function createInteractiveMarkers() {
-    // Example markers - adjust positions to match your scene
     const markerData = [
-        { name: 'Home', panelId: 'home-panel', color: 0xff6b6b, position: { x: 0, y: 1, z: 0 } },
-        { name: 'About', panelId: 'about-panel', color: 0x4ecdc4, position: { x: 5, y: 1, z: 5 } },
-        // Add more markers...
+        { name: 'Home', panel: 'home-panel', color: 0x00d4ff, position: { x: 8, y: 3, z: 8 } },
+        { name: 'About', panel: 'about-panel', color: 0x4a9eff, position: { x: -8, y: 3, z: 8 } },
+        { name: 'Event Calendar', panel: 'event-panel', color: 0xc0c0c0, position: { x: 12, y: 3, z: 0 } },
+        { name: 'Workshop', panel: 'workshop-panel', color: 0x00fff7, position: { x: 8, y: 3, z: -8 } },
+        { name: 'Address', panel: 'address-panel', color: 0xff00ff, position: { x: -8, y: 3, z: -8 } },
+        { name: 'Archives', panel: 'archives-panel', color: 0xffaa00, position: { x: -12, y: 3, z: 0 } },
+        { name: 'Ritual Merch', panel: 'merch-panel', color: 0x00ff88, position: { x: 0, y: 3, z: 12 } },
+        { name: '3D Design', panel: 'design-panel', color: 0xff0088, position: { x: 0, y: 3, z: -12 } }
     ];
 
     markerData.forEach(data => {
@@ -457,7 +461,7 @@ function createCrystalForMarker(markerName, color) {
         color: color,
         emissive: color,
         emissiveIntensity: 0.6,
-        roughness: 0.1,
+        roughness: 0.4,
         metalness: 0.9,
         transparent: true,
         opacity: 0.9
@@ -808,7 +812,7 @@ function onWindowResize() {
 
 function onMainModelClick() {
     teleportEffect();
-    playSound('portal-sound', false, 0.5);
+    playSound('portal-sound', false, 0.4);
     setTimeout(() => showSigilQuote(), 500);
 }
 
@@ -883,6 +887,47 @@ function toggleLights() {
         scene.fog = new THREE.Fog(0x0f0f15, 25, 120);
         // Restore lights...
         // (Add your light restoration logic here)
+        // Restore all scene lights to original intensity
+        sceneLights.forEach(light => {
+            if (light instanceof THREE.AmbientLight) {
+                light.intensity = 0.8;
+            } else if (light instanceof THREE.HemisphereLight) {
+                light.intensity = 0.6;
+            } else if (light instanceof THREE.DirectionalLight) {
+                if (light.color.getHex() === 0xd0f0ff) {
+                    light.intensity = 1.2;
+                } else {
+                    light.intensity = 0.7;
+                }
+            } else if (light instanceof THREE.PointLight) {
+                const hex = light.color.getHex();
+                if (hex === 0x00d4ff || hex === 0x4a9eff) {
+                    light.intensity = light.distance > 30 ? 2 : 0.8;
+                } else if (hex === 0xc0c0c0 || hex === 0xe8e8e8 || hex === 0xf5f5f5) {
+                    light.intensity = 1.5;
+                }
+            } else if (light instanceof THREE.SpotLight) {
+                light.intensity = 1.3;
+            }
+        });
+
+        // Return markers to normal glow
+        interactiveMarkers.forEach(marker => {
+            if (marker.userData.sphere) {
+                marker.userData.sphere.material.emissiveIntensity = marker.userData.originalEmissiveIntensity || 0.8;
+                marker.userData.sphere.material.roughness = 0.2;
+            }
+            if (marker.userData.ring) {
+                marker.userData.ring.material.opacity = 0.6;
+            }
+            // Reset point light intensity in markers
+            marker.traverse((child) => {
+                if (child instanceof THREE.PointLight) {
+                    child.intensity = 2;
+                    child.distance = 10;
+                }
+            });
+        });
         
         if (fullmoonSoundPlaying) {
             stopSound('fullmoon-sound');
@@ -917,7 +962,7 @@ function triggerEasterEgg() {
     redLight2.position.set(5, 2, 5);
     scene.add(redLight2);
 
-    playSound('easteregg-sound', false, 0.5);
+    playSound('easteregg-sound', false, 0.4);
 
     setTimeout(() => {
         if (easterEggDiv) easterEggDiv.style.display = 'none';
@@ -1019,7 +1064,7 @@ function animate() {
             camera.position.y += velocity.y * delta;
             camera.position.y = Math.max(camera.position.y, 0.5);
         } else {
-            const targetHeight = 1.6;
+            const targetHeight = 1.8;
             camera.position.y += (targetHeight - camera.position.y) * 0.1;
         }
     }
