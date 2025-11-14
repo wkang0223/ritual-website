@@ -34,19 +34,19 @@ let fullmoonSoundPlaying = false;
 
 // Movement modes
 let isFlying = false;
-let movementSpeed = 80;
+let movementSpeed = 50;
 
 // Interaction state
 let canClick = true;
 
 // Sigil quotes
 const sigilQuotes = [
-    "Every ritual begins with listening.",
-    "Drink the moonlight, it ferments within you.",
+    "Ritual begins with listening.",
+    "Drunken moonlight, when it ferments within you.",
     "The cycle returns with each full moon.",
-    "In darkness, we find our light.",
-    "Sound is the bridge between worlds.",
-    "Brew your intentions with care.",
+    "In darkness we find our light.",
+    "Sound is bridge between worlds, u & i",
+    "Brew your intentions with extra care.",
     "The ritual is within you."
 ];
 
@@ -346,7 +346,7 @@ function createMarker(name, panelId, color, position) {
     // FIX: Use relative path
     const loader = new THREE.GLTFLoader();
     loader.load(
-        'models/marker.glb', // ✅ CORRECT: Relative path
+        'marker.glb', // ✅ CORRECT: Relative path
         (gltf) => {
             const model = gltf.scene;
             model.traverse((child) => {
@@ -356,7 +356,7 @@ function createMarker(name, panelId, color, position) {
                     child.material = new THREE.MeshStandardMaterial({
                         color: color,
                         emissive: color,
-                        emissiveIntensity: 0.2,
+                        emissiveIntensity: 0.6,
                         roughness: 0.8,
                         metalness: 0.8,
                         map: child.material.map || null
@@ -438,6 +438,12 @@ function setupModelAnimations(markerGroup) {
     const rotations = {
         'Home': { x: 0, y: 0.01, z: 0 },
         'About': { x: 0.01, y: 0.01, z: 0 },
+        'Event Calendar': { x: 0.02, y: 0.01, z: 0 },
+        'Workshop': { x: 0.03, y: 0.01, z: 0 },
+        'Address': { x: 0.04, y: 0.01, z: 0 },
+        'Archives': { x: 0.05, y: 0.01, z: 0 },
+        'Ritual Merch': { x: 0.06, y: 0.01, z: 0 },
+        '3D Design': { x: 0.07, y: 0.01, z: 0 },
     };
     const rotation = rotations[markerGroup.userData.name] || { x: 0, y: 0.01, z: 0 };
     markerGroup.userData.modelRotation = rotation;
@@ -537,7 +543,7 @@ function loadModels() {
     loader.setDRACOLoader(dracoLoader);
 
     let modelsLoaded = 0;
-    const totalModels = 1;
+    const totalModels = 4;
 
     function checkAllModelsLoaded() {
         modelsLoaded++;
