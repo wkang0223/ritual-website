@@ -225,7 +225,7 @@ Requires:
 ---
 
 **For questions or support:**
-- Instagram: [@ritualpenang](https://instagram.com/ritualpenang)
-- Email: hello@ritualpenang.com
+- Instagram: [@ritual.penang](https://instagram.com/ritual.penang)
+- Email: ritualpg@gmail.com
 
 *Every ritual begins with listening.* 🌙
