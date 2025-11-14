@@ -421,8 +421,6 @@ function addGroundPlane() {
 // INTERACTIVE MARKERS
 // ======================
 
-// First, import GLTFLoader at the top of your file
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // Create a loader instance (reuse this for better performance)
 const gltfLoader = new GLTFLoader();
